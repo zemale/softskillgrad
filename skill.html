@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Навык — Softskillград</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{min-height:100vh;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);font-family:'Nunito',sans-serif;color:#fff;overflow-x:hidden;}
+    .stars{position:fixed;inset:0;pointer-events:none;z-index:0;}
+    .star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d,3s) infinite var(--delay,0s) ease-in-out;}
+    @keyframes twinkle{0%,100%{opacity:.1}50%{opacity:.8}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+    header{position:relative;z-index:10;display:flex;align-items:center;gap:14px;padding:16px 20px;}
+    .back-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:12px;padding:8px 16px;font-size:.9rem;font-weight:700;text-decoration:none;transition:.2s;}
+    .back-btn:hover{background:rgba(255,255,255,.18);}
+
+    .wrap{max-width:640px;margin:0 auto;padding:0 16px 80px;position:relative;z-index:5;}
+
+    /* Skill header */
+    .skill-header{text-align:center;padding:20px 0 28px;}
+    .skill-emoji{font-size:3.5rem;display:block;margin-bottom:10px;animation:float 3s ease-in-out infinite;}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    .skill-header h1{font-size:1.6rem;font-weight:900;margin-bottom:8px;}
+    .skill-header p{font-size:.9rem;color:rgba(255,255,255,.6);line-height:1.6;max-width:420px;margin:0 auto;}
+
+    /* Progress bar */
+    .progress-section{
+      background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+      border-radius:20px;padding:18px 20px;margin-bottom:24px;
+    }
+    .progress-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+    .progress-label{font-size:.85rem;font-weight:700;color:rgba(255,255,255,.6);}
+    .progress-pct{font-size:1.2rem;font-weight:900;}
+    .progress-bar{height:10px;background:rgba(255,255,255,.1);border-radius:5px;overflow:hidden;}
+    .progress-fill{height:100%;border-radius:5px;transition:width .6s cubic-bezier(.34,1.2,.64,1);}
+    .blocks-progress{display:flex;gap:8px;margin-top:12px;}
+    .block-dot{
+      flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.1);
+      transition:background .4s;
+    }
+    .block-dot.done{background:var(--color);}
+
+    /* Section */
+    .section{margin-bottom:20px;animation:fadeUp .4s ease both;}
+    .section-header{
+      display:flex;align-items:center;gap:12px;padding:16px 20px;
+      background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+      border-radius:16px;cursor:pointer;transition:.2s;user-select:none;
+    }
+    .section-header:hover{background:rgba(255,255,255,.1);}
+    .section-header .sec-emoji{font-size:1.5rem;}
+    .section-header .sec-info{flex:1;}
+    .section-header .sec-title{font-size:1rem;font-weight:900;}
+    .section-header .sec-sub{font-size:.78rem;color:rgba(255,255,255,.5);margin-top:2px;}
+    .section-header .sec-status{font-size:.8rem;font-weight:700;padding:4px 12px;border-radius:8px;}
+    .status-locked{background:rgba(255,255,255,.08);color:rgba(255,255,255,.3);}
+    .status-open{background:rgba(255,215,0,.15);color:#FFD700;}
+    .status-done{background:rgba(77,255,154,.15);color:#4dff9a;}
+    .section-header .arrow{font-size:1.1rem;color:rgba(255,255,255,.3);transition:.2s;}
+    .section-header.open .arrow{transform:rotate(90deg);}
+
+    .section-body{
+      background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+      border-top:none;border-radius:0 0 16px 16px;padding:20px;
+      display:none;
+    }
+    .section-body.open{display:block;}
+
+    /* Character bubble */
+    .char-bubble{
+      display:flex;align-items:flex-start;gap:12px;margin-bottom:20px;
+      animation:fadeUp .3s ease;
+    }
+    .char-avatar-sm{
+      width:44px;height:44px;border-radius:50%;flex-shrink:0;
+      background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;
+      font-size:1.4rem;border:2px solid var(--color);
+    }
+    .bubble-text{
+      background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+      border-radius:0 16px 16px 16px;padding:12px 16px;
+      font-size:.9rem;line-height:1.5;color:rgba(255,255,255,.85);
+      max-width:calc(100% - 56px);
+    }
+
+    /* Quiz options */
+    .options{display:flex;flex-direction:column;gap:10px;margin-top:4px;}
+    .opt-btn{
+      background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.12);
+      color:#fff;border-radius:14px;padding:12px 16px;
+      font-size:.9rem;font-weight:600;cursor:pointer;text-align:left;
+      font-family:'Nunito',sans-serif;transition:.2s;line-height:1.4;
+    }
+    .opt-btn:hover:not(:disabled){background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.25);}
+    .opt-btn.correct{background:rgba(77,255,154,.15);border-color:#4dff9a;color:#4dff9a;}
+    .opt-btn.partial{background:rgba(255,215,0,.15);border-color:#FFD700;color:#FFD700;}
+    .opt-btn.wrong{background:rgba(255,100,100,.1);border-color:rgba(255,100,100,.3);color:rgba(255,150,150,.8);}
+    .opt-btn:disabled{cursor:default;}
+
+    /* Feedback */
+    .feedback{
+      margin-top:14px;padding:12px 16px;border-radius:12px;
+      font-size:.88rem;line-height:1.5;
+      background:rgba(255,255,255,.06);border-left:3px solid var(--color);
+      animation:fadeUp .3s ease;
+    }
+
+    /* Exercise item */
+    .exercise-item{
+      background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+      border-radius:16px;padding:18px;margin-bottom:14px;
+      animation:fadeUp .3s ease;
+    }
+    .ex-num{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;opacity:.5;margin-bottom:6px;}
+    .ex-text{font-size:.95rem;line-height:1.6;margin-bottom:14px;}
+    .ex-type{display:inline-block;font-size:.72rem;padding:3px 10px;border-radius:8px;margin-bottom:10px;font-weight:700;background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);}
+    .done-btn{
+      background:var(--color);color:#fff;border:none;border-radius:12px;
+      padding:10px 22px;font-size:.9rem;font-weight:800;cursor:pointer;
+      font-family:'Nunito',sans-serif;transition:.2s;
+    }
+    .done-btn:hover{opacity:.85;transform:translateY(-1px);}
+    .done-btn:disabled{opacity:.4;cursor:default;transform:none;}
+    .done-badge{font-size:.85rem;color:#4dff9a;font-weight:700;}
+
+    /* Block 3 cards */
+    .b3-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+    @media(max-width:480px){.b3-grid{grid-template-columns:1fr;}}
+    .b3-card{
+      background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.1);
+      border-radius:14px;padding:14px;cursor:pointer;transition:.2s;
+    }
+    .b3-card:hover{border-color:var(--color);background:rgba(255,255,255,.1);}
+    .b3-card.selected{border-color:var(--color);background:rgba(255,255,255,.1);}
+    .b3-card.completed{border-color:#4dff9a;background:rgba(77,255,154,.08);}
+    .b3-card .b3-diff{font-size:.7rem;font-weight:700;margin-bottom:6px;}
+    .b3-card .b3-text{font-size:.83rem;line-height:1.4;color:rgba(255,255,255,.8);}
+    .b3-card .b3-done-mark{font-size:.8rem;color:#4dff9a;font-weight:700;margin-top:6px;}
+
+    /* Result buttons */
+    .result-btns{display:flex;flex-direction:column;gap:8px;margin-top:14px;}
+    .result-btn{
+      background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.12);
+      color:#fff;border-radius:12px;padding:11px 16px;
+      font-size:.9rem;font-weight:700;cursor:pointer;text-align:left;
+      font-family:'Nunito',sans-serif;transition:.2s;
+    }
+    .result-btn:hover{background:rgba(255,255,255,.14);}
+
+    /* Confetti */
+    .confetti-piece{position:fixed;top:-20px;border-radius:3px;animation:confettiFall linear forwards;pointer-events:none;z-index:100;}
+    @keyframes confettiFall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+
+    /* Complete banner */
+    .complete-banner{
+      background:linear-gradient(135deg,rgba(77,255,154,.15),rgba(255,215,0,.1));
+      border:2px solid #4dff9a;border-radius:20px;padding:24px;
+      text-align:center;margin-bottom:20px;display:none;
+      animation:fadeUp .5s ease;
+    }
+    .complete-banner .cb-icon{font-size:3rem;display:block;margin-bottom:10px;}
+    .complete-banner h3{font-size:1.2rem;font-weight:900;color:#4dff9a;margin-bottom:6px;}
+    .complete-banner p{font-size:.9rem;color:rgba(255,255,255,.6);}
+  </style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<header>
+  <a href="#" class="back-btn" id="backBtn">← Район</a>
+</header>
+
+<div class="wrap">
+  <div class="skill-header" id="skillHeader"></div>
+
+  <div class="progress-section" id="progressSection">
+    <div class="progress-header">
+      <span class="progress-label">Прокачка навыка</span>
+      <span class="progress-pct" id="progressPct">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="blocks-progress">
+      <div class="block-dot" id="dot1"></div>
+      <div class="block-dot" id="dot2"></div>
+      <div class="block-dot" id="dot3"></div>
+    </div>
+  </div>
+
+  <div class="complete-banner" id="completeBanner">
+    <span class="cb-icon">🏆</span>
+    <h3>Навык прокачан!</h3>
+    <p>Отличная работа! Продолжай в том же духе.</p>
+  </div>
+
+  <!-- Block 1 -->
+  <div class="section" id="sec1">
+    <div class="section-header" onclick="toggleSection('sec1')">
+      <span class="sec-emoji">🎯</span>
+      <div class="sec-info">
+        <div class="sec-title">Блок 1 — Проверка уровня</div>
+        <div class="sec-sub">3 вопроса · узнай свой текущий уровень</div>
+      </div>
+      <span class="sec-status" id="status1">Начать</span>
+      <span class="arrow">›</span>
+    </div>
+    <div class="section-body" id="body1"></div>
+  </div>
+
+  <!-- Block 2 -->
+  <div class="section" id="sec2">
+    <div class="section-header" onclick="toggleSection('sec2')">
+      <span class="sec-emoji">💪</span>
+      <div class="sec-info">
+        <div class="sec-title">Блок 2 — Тренировка</div>
+        <div class="sec-sub">10 упражнений по порядку</div>
+      </div>
+      <span class="sec-status" id="status2">Начать</span>
+      <span class="arrow">›</span>
+    </div>
+    <div class="section-body" id="body2"></div>
+  </div>
+
+  <!-- Block 3 -->
+  <div class="section" id="sec3">
+    <div class="section-header" onclick="toggleSection('sec3')">
+      <span class="sec-emoji">🎮</span>
+      <div class="sec-info">
+        <div class="sec-title">Блок 3 — Свободная практика</div>
+        <div class="sec-sub">20 заданий — выбирай любые</div>
+      </div>
+      <span class="sec-status" id="status3">Начать</span>
+      <span class="arrow">›</span>
+    </div>
+    <div class="section-body" id="body3"></div>
+  </div>
+</div>
+
+<script>
+(function(){const c=document.getElementById('stars');for(let i=0;i<60;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*3+1;s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${2+Math.random()*4}s;--delay:${Math.random()*4}s;opacity:${Math.random()*.7}`;c.appendChild(s);}})();
+
+const params = new URLSearchParams(location.search);
+const skillId = params.get('id');
+const districtId = params.get('district');
+
+let skillData, districtData, exData, character;
+
+async function init(){
+  const [sr, er] = await Promise.all([fetch('data/skills.json'), fetch('data/exercises.json')]);
+  const skills = await sr.json();
+  exData = await er.json();
+
+  districtData = skills.districts.find(d=>d.id===districtId);
+  if(!districtData) districtData = skills.districts[0];
+
+  skillData = null;
+  for(const d of skills.districts){
+    const sk = d.skills.find(s=>s.id===skillId);
+    if(sk){ skillData=sk; districtData=d; break; }
+  }
+  if(!skillData){location.href='index.html';return;}
+
+  character = districtData.character;
+  document.documentElement.style.setProperty('--color', districtData.color);
+  document.title = skillData.name + ' — Softskillград';
+  document.getElementById('backBtn').href = `district.html?id=${districtData.id}`;
+
+  renderHeader();
+  updateProgress();
+  initBlocks();
+}
+
+function renderHeader(){
+  document.getElementById('skillHeader').innerHTML=`
+    <span class="skill-emoji">${skillData.emoji}</span>
+    <h1>${skillData.name}</h1>
+    <p>${skillData.desc}</p>
+  `;
+}
+
+function getProgress(){
+  return +(localStorage.getItem(`ssg_skill_${skillId}`)||0);
+}
+function setProgress(val){
+  val = Math.min(100, Math.max(0, val));
+  localStorage.setItem(`ssg_skill_${skillId}`, val);
+  updateProgress();
+  if(val>=100) showComplete();
+}
+function updateProgress(){
+  const pct = getProgress();
+  document.getElementById('progressFill').style.width = pct+'%';
+  document.getElementById('progressFill').style.background = districtData.color;
+  document.getElementById('progressPct').style.color = districtData.color;
+  document.getElementById('progressPct').textContent = pct+'%';
+  // dots
+  const b1done = !!localStorage.getItem(`ssg_b1_${skillId}`);
+  const b2idx = +(localStorage.getItem(`ssg_b2_${skillId}`)||0);
+  const b3done = JSON.parse(localStorage.getItem(`ssg_b3_${skillId}`)||'[]');
+  document.getElementById('dot1').classList.toggle('done', b1done);
+  document.getElementById('dot2').classList.toggle('done', b2idx>=10);
+  document.getElementById('dot3').classList.toggle('done', b3done.length>=20);
+  // statuses
+  updateStatuses();
+}
+
+function updateStatuses(){
+  const b1done = !!localStorage.getItem(`ssg_b1_${skillId}`);
+  const b2idx = +(localStorage.getItem(`ssg_b2_${skillId}`)||0);
+  const b3done = JSON.parse(localStorage.getItem(`ssg_b3_${skillId}`)||'[]');
+
+  const s1 = document.getElementById('status1');
+  const s2 = document.getElementById('status2');
+  const s3 = document.getElementById('status3');
+
+  if(b1done){s1.textContent='✅ Пройден';s1.className='sec-status status-done';}
+  else{s1.textContent='Начать';s1.className='sec-status status-open';}
+
+  if(b2idx>=10){s2.textContent='✅ Пройден';s2.className='sec-status status-done';}
+  else if(b2idx>0){s2.textContent=`${b2idx}/10`;s2.className='sec-status status-open';}
+  else{s2.textContent='Начать';s2.className='sec-status status-open';}
+
+  if(b3done.length>=20){s3.textContent='✅ Пройден';s3.className='sec-status status-done';}
+  else if(b3done.length>0){s3.textContent=`${b3done.length}/20`;s3.className='sec-status status-open';}
+  else{s3.textContent='Начать';s3.className='sec-status status-open';}
+}
+
+function showComplete(){
+  document.getElementById('completeBanner').style.display='block';
+  launchConfetti();
+}
+
+function toggleSection(id){
+  const header = document.querySelector(`#${id} .section-header`);
+  const body = document.getElementById(`body${id.slice(-1)}`);
+  const isOpen = body.classList.contains('open');
+  header.classList.toggle('open',!isOpen);
+  body.classList.toggle('open',!isOpen);
+}
+
+function charBubble(text){
+  return `<div class="char-bubble">
+    <div class="char-avatar-sm">${character.avatar}</div>
+    <div class="bubble-text">${text}</div>
+  </div>`;
+}
+
+/* ====== BLOCK 1 ====== */
+function initBlocks(){
+  initBlock1();
+  initBlock2();
+  initBlock3();
+}
+
+function initBlock1(){
+  const body = document.getElementById('body1');
+  const ex = exData[skillId] || exData['verbal']; // fallback
+  const qs = ex?.block1;
+  if(!qs){body.innerHTML='<p style="opacity:.5;padding:10px">Упражнения скоро появятся 🔧</p>';return;}
+
+  const b1done = !!localStorage.getItem(`ssg_b1_${skillId}`);
+  let html = charBubble(`Привет! Я ${character.name}. ${character.intro.split('.')[0]}. Давай начнём с проверки твоего уровня!`);
+
+  qs.forEach((q,i)=>{
+    html+=`<div class="exercise-item" id="b1q${i}">
+      <div class="ex-num">Вопрос ${i+1} из ${qs.length}</div>
+      <div class="ex-text">${q.q}</div>
+      <div class="options" id="b1opts${i}">
+        ${q.options.map((o,j)=>`<button class="opt-btn" onclick="answerB1(${i},${j})" ${b1done?'disabled':''}>${o.text}</button>`).join('')}
+      </div>
+      <div class="feedback" id="b1fb${i}" style="display:none"></div>
+    </div>`;
+  });
+
+  if(b1done){
+    html+=charBubble('Блок 1 уже пройден! Переходи к тренировке 💪');
+  } else {
+    html+=`<div id="b1complete" style="display:none">${charBubble('Отлично! Теперь ты знаешь свой уровень. Переходи к тренировке 💪')}</div>`;
+  }
+
+  body.innerHTML = html;
+}
+
+let b1answers = {};
+function answerB1(qIdx, optIdx){
+  const ex = exData[skillId] || exData['verbal'];
+  const q = ex.block1[qIdx];
+  const opt = q.options[optIdx];
+  const btns = document.querySelectorAll(`#b1opts${qIdx} .opt-btn`);
+  btns.forEach(b=>b.disabled=true);
+
+  const score = opt.score;
+  let cls = score>=2 ? 'correct' : score===1 ? 'partial' : 'wrong';
+  btns[optIdx].classList.add(cls);
+
+  const fb = document.getElementById(`b1fb${qIdx}`);
+  fb.style.display='block';
+  fb.textContent = opt.comment;
+
+  b1answers[qIdx]=score;
+
+  // Check if all answered
+  if(Object.keys(b1answers).length === ex.block1.length){
+    localStorage.setItem(`ssg_b1_${skillId}`, '1');
+    const cur = getProgress();
+    if(cur < 10) setProgress(10);
+    document.getElementById('b1complete').style.display='block';
+    updateStatuses();
+  }
+}
+
+/* ====== BLOCK 2 ====== */
+function initBlock2(){
+  const body = document.getElementById('body2');
+  const ex = exData[skillId] || exData['verbal'];
+  const tasks = ex?.block2;
+  if(!tasks){body.innerHTML='<p style="opacity:.5;padding:10px">Упражнения скоро появятся 🔧</p>';return;}
+
+  const curIdx = +(localStorage.getItem(`ssg_b2_${skillId}`)||0);
+  let html = charBubble(`Теперь тренировка! 10 заданий — по одному. Делаешь в реальной жизни и возвращаешься за следующим.`);
+
+  tasks.forEach((t,i)=>{
+    const done = i < curIdx;
+    const current = i === curIdx;
+    const typeLabel = {life:'🌍 В жизни',reflect:'💭 Поразмысли',written:'✍️ Напиши',practice:'⚙️ Сделай'}[t.type]||'📝 Задание';
+    html+=`<div class="exercise-item" id="b2ex${i}" style="${!done&&!current?'opacity:.35;pointer-events:none':''}">
+      <div class="ex-num">${done?'✅':current?'▶️':'○'} Задание ${i+1} из ${tasks.length}</div>
+      <span class="ex-type">${typeLabel}</span>
+      <div class="ex-text">${t.text}</div>
+      ${done?`<div class="done-badge">✅ Выполнено</div>`:
+        current?`<button class="done-btn" id="b2btn${i}" onclick="doneB2(${i})">✅ Я сделал</button>`:''}
+    </div>`;
+  });
+
+  if(curIdx>=tasks.length){
+    html+=charBubble(character.phrases.easy[0]+' Блок 2 полностью пройден! 🎉');
+  }
+
+  body.innerHTML=html;
+}
+
+function doneB2(idx){
+  const ex = exData[skillId] || exData['verbal'];
+  const newIdx = idx+1;
+  localStorage.setItem(`ssg_b2_${skillId}`, newIdx);
+  const cur = getProgress();
+  setProgress(cur+4);
+  initBlock2(); // re-render
+  const body = document.getElementById('body2');
+  body.classList.add('open');
+  document.querySelector('#sec2 .section-header').classList.add('open');
+}
+
+/* ====== BLOCK 3 ====== */
+function initBlock3(){
+  const body = document.getElementById('body3');
+  const ex = exData[skillId] || exData['verbal'];
+  const tasks = ex?.block3;
+  if(!tasks){body.innerHTML='<p style="opacity:.5;padding:10px">Упражнения скоро появятся 🔧</p>';return;}
+
+  const done = JSON.parse(localStorage.getItem(`ssg_b3_${skillId}`)||'[]');
+  let html = charBubble(`20 заданий — выбирай любые которые тебе интересны! После каждого расскажи как прошло.`);
+  html+=`<div class="b3-grid" id="b3grid">`;
+
+  tasks.forEach(t=>{
+    const isDone = done.includes(t.id);
+    html+=`<div class="b3-card ${isDone?'completed':''}" id="b3c_${t.id}" onclick="${isDone?'':` selectB3('${t.id}')`}">
+      <div class="b3-diff">${t.difficulty}</div>
+      <div class="b3-text">${t.text}</div>
+      ${isDone?`<div class="b3-done-mark">✅ Выполнено</div>`:''}
+    </div>`;
+  });
+
+  html+=`</div>`;
+  html+=`<div id="b3selected" style="display:none">
+    <div class="exercise-item" id="b3activeTask"></div>
+    <div class="result-btns" id="b3resultBtns">
+      <button class="result-btn" onclick="reportB3('easy')">😎 Получилось легко</button>
+      <button class="result-btn" onclick="reportB3('hard')">😅 Было сложно</button>
+      <button class="result-btn" onclick="reportB3('partial')">🤔 Не до конца</button>
+    </div>
+    <div id="b3charReply" style="display:none;margin-top:14px"></div>
+  </div>`;
+
+  if(done.length>=20){
+    html+=charBubble('Ты прошёл все задания! Это невероятно 🏆');
+  }
+
+  body.innerHTML=html;
+}
+
+let activeB3Id = null;
+function selectB3(id){
+  const ex = exData[skillId] || exData['verbal'];
+  const task = ex.block3.find(t=>t.id===id);
+  if(!task) return;
+  activeB3Id = id;
+
+  // highlight selected
+  document.querySelectorAll('.b3-card').forEach(c=>c.classList.remove('selected'));
+  const card = document.getElementById(`b3c_${id}`);
+  if(card) card.classList.add('selected');
+
+  const sel = document.getElementById('b3selected');
+  sel.style.display='block';
+  document.getElementById('b3activeTask').innerHTML=`
+    <div class="ex-num">${task.difficulty}</div>
+    <div class="ex-text">${task.text}</div>
+    <p style="font-size:.82rem;color:rgba(255,255,255,.4);margin-top:8px">Выполни задание и отметь результат 👇</p>
+  `;
+  document.getElementById('b3resultBtns').style.display='flex';
+  document.getElementById('b3charReply').style.display='none';
+  sel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function reportB3(type){
+  if(!activeB3Id) return;
+  const done = JSON.parse(localStorage.getItem(`ssg_b3_${skillId}`)||'[]');
+  if(!done.includes(activeB3Id)){
+    done.push(activeB3Id);
+    localStorage.setItem(`ssg_b3_${skillId}`, JSON.stringify(done));
+    const cur = getProgress();
+    setProgress(cur+2.5);
+  }
+
+  // Character reply
+  const phrases = character.phrases[type];
+  const reply = phrases[Math.floor(Math.random()*phrases.length)];
+  document.getElementById('b3resultBtns').style.display='none';
+  const replyEl = document.getElementById('b3charReply');
+  replyEl.style.display='block';
+  replyEl.innerHTML = charBubble(reply);
+
+  // Mark card done
+  const card = document.getElementById(`b3c_${activeB3Id}`);
+  if(card){
+    card.className='b3-card completed';
+    card.onclick=null;
+    card.innerHTML+=`<div class="b3-done-mark">✅ Выполнено</div>`;
+    card.classList.remove('selected');
+  }
+
+  updateStatuses();
+  activeB3Id=null;
+}
+
+function launchConfetti(){
+  const colors=['#FFD700','#fd79a8','#a29bfe','#55efc4','#fdcb6e','#74b9ff'];
+  for(let i=0;i<80;i++){
+    setTimeout(()=>{
+      const el=document.createElement('div');el.className='confetti-piece';
+      const size=8+Math.random()*8;
+      el.style.cssText=`left:${Math.random()*100}vw;width:${size}px;height:${size*.6}px;background:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${1.5+Math.random()*2}s;animation-delay:${Math.random()*.5}s;transform:rotate(${Math.random()*360}deg)`;
+      document.body.appendChild(el);setTimeout(()=>el.remove(),4000);
+    },i*30);
+  }
+}
+
+init();
+</script>
+</body>
+</html>

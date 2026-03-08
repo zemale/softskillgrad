@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Тест — Softskillград</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{min-height:100vh;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);font-family:'Nunito',sans-serif;color:#fff;overflow-x:hidden;}
+    .stars{position:fixed;inset:0;pointer-events:none;z-index:0;}
+    .star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d,3s) infinite var(--delay,0s) ease-in-out;}
+    @keyframes twinkle{0%,100%{opacity:.1}50%{opacity:.8}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+    header{position:relative;z-index:10;display:flex;align-items:center;gap:14px;padding:16px 20px;}
+    .back-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:12px;padding:8px 16px;font-size:.9rem;font-weight:700;text-decoration:none;transition:.2s;}
+    .back-btn:hover{background:rgba(255,255,255,.18);}
+
+    .wrap{max-width:600px;margin:0 auto;padding:0 16px 60px;position:relative;z-index:5;}
+
+    /* Intro */
+    .intro{text-align:center;padding:24px 0 32px;animation:fadeUp .5s ease;}
+    .intro .icon{font-size:4rem;display:block;margin-bottom:14px;}
+    .intro h1{font-size:1.7rem;font-weight:900;margin-bottom:10px;}
+    .intro p{font-size:.95rem;color:rgba(255,255,255,.6);line-height:1.6;margin-bottom:24px;}
+    .start-btn{
+      background:linear-gradient(135deg,#a29bfe,#6c5ce7);
+      color:#fff;border:none;border-radius:18px;padding:14px 36px;
+      font-size:1.05rem;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;
+      transition:.2s;
+    }
+    .start-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(162,155,254,.4);}
+
+    /* Progress bar */
+    .progress-bar-wrap{height:6px;background:rgba(255,255,255,.1);border-radius:3px;margin-bottom:24px;overflow:hidden;}
+    .progress-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#a29bfe,#fd79a8);transition:width .4s;}
+
+    /* Question */
+    .question-card{
+      background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+      border-radius:20px;padding:24px;margin-bottom:16px;
+      animation:fadeUp .4s ease;
+    }
+    .q-num{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.4);margin-bottom:10px;}
+    .q-text{font-size:1.05rem;font-weight:700;line-height:1.5;margin-bottom:18px;}
+    .q-options{display:flex;flex-direction:column;gap:10px;}
+    .q-opt{
+      background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.12);
+      color:#fff;border-radius:14px;padding:12px 16px;
+      font-size:.9rem;font-weight:600;cursor:pointer;text-align:left;
+      font-family:'Nunito',sans-serif;transition:.2s;
+    }
+    .q-opt:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.25);}
+    .q-opt.selected{background:rgba(162,155,254,.2);border-color:#a29bfe;color:#a29bfe;}
+  </style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<header>
+  <a href="index.html" class="back-btn">← Главная</a>
+  <span style="font-size:1rem;font-weight:800;">🧠 Тест «Твои Soft Skills»</span>
+</header>
+
+<div class="wrap">
+  <!-- Intro -->
+  <div class="intro" id="introView">
+    <span class="icon">🎯</span>
+    <h1>Узнай свои Soft Skills</h1>
+    <p>20 вопросов — 5 минут.<br>Ты узнаешь свои сильные стороны и поймёшь над чем стоит поработать.</p>
+    <button class="start-btn" onclick="startTest()">Начать тест →</button>
+  </div>
+
+  <!-- Test -->
+  <div id="testView" style="display:none">
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="testProgress" style="width:0%"></div></div>
+    <div id="questionWrap"></div>
+  </div>
+</div>
+
+<script>
+(function(){const c=document.getElementById('stars');for(let i=0;i<60;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*3+1;s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${2+Math.random()*4}s;--delay:${Math.random()*4}s;`;c.appendChild(s);}})();
+
+let questions=[], current=0, scores={communication:0,leadership:0,creative:0,personal:0};
+
+async function startTest(){
+  const res=await fetch('data/test.json');
+  const data=await res.json();
+  questions=data.questions;
+  document.getElementById('introView').style.display='none';
+  document.getElementById('testView').style.display='block';
+  showQuestion();
+}
+
+function showQuestion(){
+  if(current>=questions.length){finish();return;}
+  const q=questions[current];
+  const pct=Math.round(current/questions.length*100);
+  document.getElementById('testProgress').style.width=pct+'%';
+
+  const wrap=document.getElementById('questionWrap');
+  wrap.innerHTML=`<div class="question-card">
+    <div class="q-num">Вопрос ${current+1} из ${questions.length}</div>
+    <div class="q-text">${q.text}</div>
+    <div class="q-options">
+      ${q.options.map((o,i)=>`<button class="q-opt" onclick="answer(${i})">${o.text}</button>`).join('')}
+    </div>
+  </div>`;
+}
+
+function answer(idx){
+  const q=questions[current];
+  scores[q.group]=(scores[q.group]||0)+q.options[idx].score;
+  const btn=document.querySelectorAll('.q-opt')[idx];
+  btn.classList.add('selected');
+  setTimeout(()=>{current++;showQuestion();},300);
+}
+
+function finish(){
+  localStorage.setItem('ssg_test_done','1');
+  localStorage.setItem('ssg_test_result',JSON.stringify(scores));
+  location.href='result.html';
+}
+</script>
+</body>
+</html>

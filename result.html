@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Результат — Softskillград</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{min-height:100vh;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);font-family:'Nunito',sans-serif;color:#fff;overflow-x:hidden;}
+    .stars{position:fixed;inset:0;pointer-events:none;z-index:0;}
+    .star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d,3s) infinite var(--delay,0s) ease-in-out;}
+    @keyframes twinkle{0%,100%{opacity:.1}50%{opacity:.8}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+    header{position:relative;z-index:10;display:flex;align-items:center;gap:14px;padding:16px 20px;}
+    .back-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:12px;padding:8px 16px;font-size:.9rem;font-weight:700;text-decoration:none;}
+
+    .wrap{max-width:640px;margin:0 auto;padding:0 16px 60px;position:relative;z-index:5;}
+
+    .result-hero{text-align:center;padding:24px 0 28px;animation:fadeUp .5s ease;}
+    .result-hero .icon{font-size:4rem;display:block;margin-bottom:12px;}
+    .result-hero h1{font-size:1.6rem;font-weight:900;margin-bottom:8px;}
+    .result-hero p{font-size:.9rem;color:rgba(255,255,255,.6);line-height:1.5;}
+
+    /* Radar chart */
+    .radar-wrap{text-align:center;margin:24px 0;animation:fadeUp .5s .1s ease both;}
+    canvas{max-width:300px;}
+
+    /* Score bars */
+    .score-section{margin-bottom:28px;animation:fadeUp .5s .2s ease both;}
+    .score-title{font-size:1rem;font-weight:800;margin-bottom:16px;opacity:.7;text-transform:uppercase;letter-spacing:.5px;}
+    .score-item{margin-bottom:14px;}
+    .score-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+    .score-name{font-size:.95rem;font-weight:700;display:flex;align-items:center;gap:8px;}
+    .score-val{font-size:.9rem;font-weight:800;}
+    .score-bar{height:10px;background:rgba(255,255,255,.1);border-radius:5px;overflow:hidden;}
+    .score-fill{height:100%;border-radius:5px;transition:width .8s cubic-bezier(.34,1.2,.64,1);}
+
+    /* Recommendations */
+    .recs{animation:fadeUp .5s .3s ease both;}
+    .recs-title{font-size:1rem;font-weight:800;margin-bottom:16px;opacity:.7;text-transform:uppercase;letter-spacing:.5px;}
+    .rec-card{
+      background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.1);
+      border-radius:18px;padding:18px;margin-bottom:12px;
+      text-decoration:none;color:#fff;display:block;transition:.2s;
+    }
+    .rec-card:hover{transform:translateY(-2px);}
+    .rec-top{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+    .rec-emoji{font-size:1.8rem;}
+    .rec-info{flex:1;}
+    .rec-name{font-size:1rem;font-weight:800;}
+    .rec-district{font-size:.78rem;opacity:.5;margin-top:2px;}
+    .rec-why{font-size:.83rem;color:rgba(255,255,255,.6);line-height:1.4;}
+    .rec-arrow{font-size:1.2rem;opacity:.4;}
+
+    .retry-btn{
+      display:block;text-align:center;margin-top:24px;padding:14px;
+      background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+      color:rgba(255,255,255,.6);border-radius:16px;text-decoration:none;
+      font-weight:700;font-size:.9rem;transition:.2s;
+    }
+    .retry-btn:hover{background:rgba(255,255,255,.14);}
+  </style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<header>
+  <a href="index.html" class="back-btn">← Главная</a>
+</header>
+
+<div class="wrap">
+  <div class="result-hero">
+    <span class="icon">🎯</span>
+    <h1>Твои Soft Skills</h1>
+    <p id="resultSummary"></p>
+  </div>
+
+  <div class="radar-wrap">
+    <canvas id="radar" width="300" height="300"></canvas>
+  </div>
+
+  <div class="score-section">
+    <div class="score-title">Твои баллы</div>
+    <div id="scoreBars"></div>
+  </div>
+
+  <div class="recs">
+    <div class="recs-title">С чего начать</div>
+    <div id="recsList"></div>
+  </div>
+
+  <a href="test.html" class="retry-btn">🔄 Пройти тест заново</a>
+</div>
+
+<script>
+(function(){const c=document.getElementById('stars');for(let i=0;i<60;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*3+1;s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${2+Math.random()*4}s;--delay:${Math.random()*4}s;`;c.appendChild(s);}})();
+
+const DISTRICTS = {
+  communication:{name:'Коммуникация',emoji:'🎤',color:'#e17055'},
+  leadership:{name:'Лидерство',emoji:'👑',color:'#0984e3'},
+  creative:{name:'Креатив',emoji:'🎨',color:'#a29bfe'},
+  personal:{name:'Личность',emoji:'🧠',color:'#00b894'}
+};
+const MAX_SCORE = {communication:20,leadership:20,creative:20,personal:20};
+
+async function init(){
+  const raw = localStorage.getItem('ssg_test_result');
+  if(!raw){location.href='test.html';return;}
+  const scores = JSON.parse(raw);
+
+  // Normalize to %
+  const pcts = {};
+  Object.keys(DISTRICTS).forEach(k=>{
+    pcts[k] = Math.round((scores[k]||0)/MAX_SCORE[k]*100);
+  });
+
+  renderRadar(pcts);
+  renderBars(pcts);
+  renderRecs(pcts, scores);
+  renderSummary(pcts);
+}
+
+function renderSummary(pcts){
+  const sorted = Object.entries(pcts).sort((a,b)=>b[1]-a[1]);
+  const top = DISTRICTS[sorted[0][0]];
+  const low = DISTRICTS[sorted[sorted.length-1][0]];
+  document.getElementById('resultSummary').textContent =
+    `Твоя сила — ${top.name}. Есть куда расти в ${low.name}.`;
+}
+
+function renderBars(pcts){
+  const wrap = document.getElementById('scoreBars');
+  Object.entries(pcts).sort((a,b)=>b[1]-a[1]).forEach(([k,pct])=>{
+    const d = DISTRICTS[k];
+    const div = document.createElement('div');
+    div.className='score-item';
+    div.innerHTML=`
+      <div class="score-header">
+        <span class="score-name">${d.emoji} ${d.name}</span>
+        <span class="score-val" style="color:${d.color}">${pct}%</span>
+      </div>
+      <div class="score-bar"><div class="score-fill" style="width:0%;background:${d.color}" data-pct="${pct}"></div></div>
+    `;
+    wrap.appendChild(div);
+    setTimeout(()=>div.querySelector('.score-fill').style.width=pct+'%', 100);
+  });
+}
+
+function renderRecs(pcts){
+  const sorted = Object.entries(pcts).sort((a,b)=>a[1]-b[1]);
+  const wrap = document.getElementById('recsList');
+
+  sorted.slice(0,3).forEach(([k,pct])=>{
+    const d = DISTRICTS[k];
+    const why = pct < 40 ? 'Здесь есть большой потенциал для роста!' :
+                pct < 70 ? 'Хорошая база — можно прокачать ещё больше.' :
+                'Ты уже силён здесь, но совершенству нет предела!';
+    const card = document.createElement('a');
+    card.className='rec-card';
+    card.href=`district.html?id=${k}`;
+    card.style.borderColor=d.color+'44';
+    card.innerHTML=`
+      <div class="rec-top">
+        <span class="rec-emoji">${d.emoji}</span>
+        <div class="rec-info">
+          <div class="rec-name">${d.name}</div>
+          <div class="rec-district" style="color:${d.color}">${pct}% прокачано</div>
+        </div>
+        <span class="rec-arrow">→</span>
+      </div>
+      <div class="rec-why">${why}</div>
+    `;
+    wrap.appendChild(card);
+  });
+}
+
+function renderRadar(pcts){
+  const canvas = document.getElementById('radar');
+  const ctx = canvas.getContext('2d');
+  const cx=150,cy=150,r=110;
+  const keys = ['communication','leadership','creative','personal'];
+  const labels = ['🎤','👑','🎨','🧠'];
+  const colors = ['#e17055','#0984e3','#a29bfe','#00b894'];
+  const angles = keys.map((_,i)=>-Math.PI/2 + i*Math.PI*2/keys.length);
+
+  // Grid
+  for(let g=1;g<=4;g++){
+    ctx.beginPath();
+    angles.forEach((a,i)=>{
+      const x=cx+Math.cos(a)*r*g/4;
+      const y=cy+Math.sin(a)*r*g/4;
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    ctx.closePath();
+    ctx.strokeStyle='rgba(255,255,255,.08)';
+    ctx.stroke();
+  }
+  // Axes
+  angles.forEach(a=>{
+    ctx.beginPath();ctx.moveTo(cx,cy);
+    ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);
+    ctx.strokeStyle='rgba(255,255,255,.1)';ctx.stroke();
+  });
+  // Data polygon
+  ctx.beginPath();
+  angles.forEach((a,i)=>{
+    const v=(pcts[keys[i]]||0)/100;
+    const x=cx+Math.cos(a)*r*v;
+    const y=cy+Math.sin(a)*r*v;
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.closePath();
+  ctx.fillStyle='rgba(162,155,254,.25)';ctx.fill();
+  ctx.strokeStyle='#a29bfe';ctx.lineWidth=2;ctx.stroke();
+  // Points
+  angles.forEach((a,i)=>{
+    const v=(pcts[keys[i]]||0)/100;
+    const x=cx+Math.cos(a)*r*v;
+    const y=cy+Math.sin(a)*r*v;
+    ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);
+    ctx.fillStyle=colors[i];ctx.fill();
+  });
+  // Labels
+  ctx.font='bold 22px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+  angles.forEach((a,i)=>{
+    const x=cx+Math.cos(a)*(r+22);
+    const y=cy+Math.sin(a)*(r+22);
+    ctx.fillText(labels[i],x,y);
+  });
+}
+
+init();
+</script>
+</body>
+</html>

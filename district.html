@@ -6,144 +6,131 @@
   <title>Район — Softskillград</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
   <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{min-height:100vh;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);font-family:'Nunito',sans-serif;color:#fff;overflow-x:hidden;}
-    .stars{position:fixed;inset:0;pointer-events:none;z-index:0;}
-    .star{position:absolute;border-radius:50%;background:#fff;animation:twinkle var(--d,3s) infinite var(--delay,0s) ease-in-out;}
-    @keyframes twinkle{0%,100%{opacity:.1}50%{opacity:.8}}
-
-    header{position:relative;z-index:10;display:flex;align-items:center;gap:14px;padding:18px 24px;}
-    .back-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#fff;border-radius:12px;padding:8px 16px;font-size:.9rem;font-weight:700;text-decoration:none;transition:.2s;}
-    .back-btn:hover{background:rgba(255,255,255,.18);}
-
-    /* District hero */
-    .d-hero{
-      position:relative;z-index:5;text-align:center;padding:24px 20px 32px;
+    .d-hero {
+      position: relative; z-index: 5;
+      text-align: center; padding: 32px 20px 28px;
     }
-    .d-emoji{font-size:4rem;display:block;margin-bottom:12px;animation:float 3s ease-in-out infinite;}
-    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-    .d-hero h1{font-size:1.8rem;font-weight:900;margin-bottom:6px;}
-    .d-hero .subtitle{font-size:.9rem;color:rgba(255,255,255,.55);margin-bottom:20px;}
+    .d-emoji { font-size: 4rem; display: block; margin-bottom: 10px; animation: float 3s ease-in-out infinite; }
+    .d-hero h1 { font-size: 1.8rem; font-weight: 900; margin-bottom: 6px; }
+    .d-hero .sub { font-size: .9rem; color: var(--text3); margin-bottom: 20px; }
 
-    /* Character card */
-    .character-card{
-      display:inline-flex;align-items:center;gap:16px;
-      background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
-      border-radius:20px;padding:16px 24px;margin-bottom:8px;max-width:500px;width:100%;
+    .char-card {
+      display: inline-flex; align-items: center; gap: 14px;
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 18px; padding: 14px 20px;
+      max-width: 480px; width: 100%;
+      box-shadow: 0 4px 18px var(--shadow);
+      text-align: left;
     }
-    .char-avatar{font-size:2.5rem;flex-shrink:0;}
-    .char-info{text-align:left;}
-    .char-name{font-size:1rem;font-weight:900;}
-    .char-role{font-size:.8rem;color:rgba(255,255,255,.5);}
-    .char-quote{font-size:.85rem;color:rgba(255,255,255,.7);margin-top:4px;line-height:1.4;font-style:italic;}
+    .char-av { font-size: 2.2rem; flex-shrink: 0; }
+    .char-name { font-size: 1rem; font-weight: 900; color: var(--text); }
+    .char-role { font-size: .78rem; color: var(--text3); margin-top: 2px; }
+    .char-q { font-size: .83rem; color: var(--text2); margin-top: 6px; line-height: 1.4; font-style: italic; }
 
-    /* Skills grid */
-    .skills-wrap{max-width:860px;margin:0 auto;padding:0 16px 60px;}
-    .skills-title{font-size:1.1rem;font-weight:800;margin-bottom:16px;opacity:.7;text-transform:uppercase;letter-spacing:.5px;}
-    .skills-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;}
+    .skills-wrap { max-width: 860px; margin: 0 auto; padding: 0 16px 60px; position: relative; z-index: 5; }
+    .skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap: 16px; }
 
-    .skill-card{
-      background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.1);
-      border-radius:20px;padding:22px 18px;text-decoration:none;color:#fff;
-      transition:.25s;display:flex;flex-direction:column;gap:10px;
-      animation:fadeUp .5s ease both;
+    .skill-card {
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 20px; padding: 20px 18px;
+      text-decoration: none; color: var(--text);
+      transition: .25s; display: flex; flex-direction: column; gap: 10px;
+      box-shadow: 0 3px 14px var(--shadow);
+      animation: fadeUp .4s ease both;
     }
-    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-    .skill-card:hover{transform:translateY(-4px);}
-    .skill-card .sk-top{display:flex;align-items:center;gap:10px;}
-    .skill-card .sk-emoji{font-size:1.8rem;}
-    .skill-card .sk-name{font-size:1rem;font-weight:800;}
-    .skill-card .sk-desc{font-size:.8rem;color:rgba(255,255,255,.55);line-height:1.5;}
-    .skill-card .sk-bar-wrap{height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;}
-    .skill-card .sk-bar-fill{height:100%;border-radius:3px;transition:width .5s;}
-    .skill-card .sk-footer{display:flex;align-items:center;justify-content:space-between;}
-    .skill-card .sk-pct{font-size:.78rem;font-weight:700;}
-    .skill-card .sk-badge{font-size:.72rem;padding:3px 10px;border-radius:8px;font-weight:700;}
-    .badge-new{background:rgba(255,255,255,.08);color:rgba(255,255,255,.4);}
-    .badge-progress{background:rgba(255,215,0,.15);color:#FFD700;}
-    .badge-done{background:rgba(77,255,154,.15);color:#4dff9a;}
+    .skill-card:hover { transform: translateY(-4px); box-shadow: 0 8px 28px var(--shadow2); }
+    .sk-top { display: flex; align-items: center; gap: 10px; }
+    .sk-emoji { font-size: 1.8rem; }
+    .sk-name { font-size: 1rem; font-weight: 800; }
+    .sk-desc { font-size: .8rem; color: var(--text3); line-height: 1.5; }
+    .sk-footer { display: flex; align-items: center; justify-content: space-between; }
+    .sk-pct { font-size: .8rem; font-weight: 800; }
+    .sk-badge { font-size: .72rem; padding: 3px 10px; border-radius: 8px; font-weight: 700; }
+    .badge-new  { background: var(--bg2); color: var(--text3); }
+    .badge-prog { background: var(--yellow-light); color: #8a6a10; }
+    .badge-done { background: var(--sage-light); color: #3a7a55; }
   </style>
 </head>
 <body>
 
-<div class="stars" id="stars"></div>
+<div class="bg-deco">
+  <div class="bg-blob blob1"></div>
+  <div class="bg-blob blob2"></div>
+  <div class="bg-blob blob3"></div>
+</div>
 
 <header>
   <a href="index.html" class="back-btn">← Главная</a>
-  <span id="headerTitle" style="font-size:1.1rem;font-weight:800;"></span>
+  <span class="header-title" id="headerTitle"></span>
 </header>
 
-<div class="d-hero" id="districtHero"></div>
+<div class="d-hero" id="dHero"></div>
 
 <div class="skills-wrap">
-  <div class="skills-title">Навыки района</div>
+  <div class="section-label">Навыки района</div>
   <div class="skills-grid" id="skillsGrid"></div>
 </div>
 
 <script>
-(function(){const c=document.getElementById('stars');for(let i=0;i<60;i++){const s=document.createElement('div');s.className='star';const sz=Math.random()*3+1;s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*100}%;--d:${2+Math.random()*4}s;--delay:${Math.random()*4}s;opacity:${Math.random()*.7}`;c.appendChild(s);}})();
-
-const params = new URLSearchParams(location.search);
-const distId = params.get('id');
+const ACCENTS = { communication:'#f4956a', leadership:'#7ab893', creative:'#b8a9d9', personal:'#7ec8e3' };
+const BGLIGHTS = { communication:'#fde9dc', leadership:'#e8f5ee', creative:'#ece8f8', personal:'#dff2fa' };
+const districtId = new URLSearchParams(location.search).get('id');
 
 async function init(){
   const res = await fetch('data/skills.json');
   const data = await res.json();
-  const district = data.districts.find(d=>d.id===distId);
-  if(!district){location.href='index.html';return;}
-
-  document.title = district.name + ' — Softskillград';
-  document.getElementById('headerTitle').textContent = district.emoji + ' ' + district.name;
-  renderHero(district);
-  renderSkills(district);
+  const d = data.districts.find(x=>x.id===districtId);
+  if(!d){location.href='index.html';return;}
+  document.title = d.name+' — Softskillград';
+  renderHero(d);
+  renderSkills(d);
 }
 
 function renderHero(d){
-  const hero = document.getElementById('districtHero');
-  hero.style.cssText += `;--color:${d.color}`;
-  hero.innerHTML = `
+  const accent = ACCENTS[d.id]||'#7ab893';
+  document.getElementById('headerTitle').textContent = d.emoji+' '+d.name;
+  document.getElementById('dHero').innerHTML=`
     <span class="d-emoji">${d.emoji}</span>
-    <h1 style="color:${d.color}">${d.name}</h1>
-    <p class="subtitle">Персональный тренер: ${d.character.name}</p>
-    <div class="character-card" style="border-color:${d.colorBorder}">
-      <span class="char-avatar">${d.character.avatar}</span>
-      <div class="char-info">
-        <div class="char-name">${d.character.name} <span style="font-weight:400;font-size:.8rem;opacity:.6">· ${d.character.role}</span></div>
-        <div class="char-quote">«${d.character.intro.substring(0,100)}...»</div>
+    <h1 style="color:${accent}">${d.name}</h1>
+    <p class="sub">Тренер: <strong>${d.character.name}</strong></p>
+    <div class="char-card">
+      <span class="char-av">${d.character.avatar}</span>
+      <div>
+        <div class="char-name">${d.character.name} <span style="font-weight:500;font-size:.8rem;color:var(--text3)">· ${d.character.role}</span></div>
+        <div class="char-q">«${d.character.intro.split('.')[0]}.»</div>
       </div>
     </div>
   `;
 }
 
 function renderSkills(d){
+  const accent = ACCENTS[d.id]||'#7ab893';
+  const bgLight = BGLIGHTS[d.id]||'#e8f5ee';
   const grid = document.getElementById('skillsGrid');
   d.skills.forEach((sk,i)=>{
     const pct = +(localStorage.getItem(`ssg_skill_${sk.id}`)||0);
-    const card = document.createElement('a');
+    let badge,bClass;
+    if(pct===0){badge='Новый';bClass='badge-new';}
+    else if(pct>=100){badge='✅ Прокачан';bClass='badge-done';}
+    else{badge='В процессе';bClass='badge-prog';}
+
+    const card=document.createElement('a');
     card.className='skill-card';
     card.href=`skill.html?id=${sk.id}&district=${d.id}`;
-    card.style.cssText=`animation-delay:${i*0.08}s`;
-
-    let badge, badgeClass;
-    if(pct===0){badge='Новый';badgeClass='badge-new';}
-    else if(pct>=100){badge='✅ Прокачан';badgeClass='badge-done';}
-    else{badge='В процессе';badgeClass='badge-progress';}
-
+    card.style.animationDelay=i*.08+'s';
     card.innerHTML=`
-      <div class="sk-top">
-        <span class="sk-emoji">${sk.emoji}</span>
-        <span class="sk-name">${sk.name}</span>
-      </div>
+      <div class="sk-top"><span class="sk-emoji">${sk.emoji}</span><span class="sk-name">${sk.name}</span></div>
       <div class="sk-desc">${sk.desc}</div>
-      <div class="sk-bar-wrap"><div class="sk-bar-fill" style="width:${pct}%;background:${d.color}"></div></div>
+      <div class="pbar-wrap"><div class="pbar-fill" style="width:${pct}%;background:${accent}"></div></div>
       <div class="sk-footer">
-        <span class="sk-pct" style="color:${d.color}">${pct}%</span>
-        <span class="sk-badge ${badgeClass}">${badge}</span>
+        <span class="sk-pct" style="color:${accent}">${pct}%</span>
+        <span class="sk-badge ${bClass}">${badge}</span>
       </div>
     `;
-    card.addEventListener('mouseenter',()=>{card.style.borderColor=d.color;card.style.background=d.colorLight;});
-    card.addEventListener('mouseleave',()=>{card.style.borderColor='rgba(255,255,255,.1)';card.style.background='rgba(255,255,255,.06)';});
+    card.addEventListener('mouseenter',()=>{card.style.background=bgLight;card.style.borderColor=accent;});
+    card.addEventListener('mouseleave',()=>{card.style.background='';card.style.borderColor='';});
     grid.appendChild(card);
   });
 }

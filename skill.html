@@ -166,6 +166,19 @@
     </div>
     <div class="section-body" id="body3"></div>
   </div>
+
+  <div class="section" id="sec4" style="animation-delay:.3s;display:none">
+    <div class="section-hdr" onclick="toggleSection('sec4')">
+      <span class="sh-emoji">✨</span>
+      <div class="sh-info">
+        <div class="sh-title">Блок 4 — Интерактив</div>
+        <div class="sh-sub">Симуляторы, игры и вызовы</div>
+      </div>
+      <span class="sh-status st-open" style="background:var(--lav-light);color:#5a4090">Играть</span>
+      <span class="sh-arrow">›</span>
+    </div>
+    <div class="section-body" id="body4"></div>
+  </div>
 </div>
 
 <script>
@@ -210,6 +223,7 @@ async function init(){
   initBlock1();
   initBlock2();
   initBlock3();
+  initBlock4();
   if(getProgress()>=100) showComplete();
 }
 
@@ -385,6 +399,59 @@ function selB3(id){
   document.getElementById('b3rbtn').style.display='flex';
   document.getElementById('b3reply').style.display='none';
   sel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+/* BLOCK 4 — Interactive */
+const INTERACTIVE_MAP = {
+  // Симулятор диалога
+  verbal:'dialog', emotional_intelligence:'dialog', public_speaking:'dialog',
+  // Сортировка
+  conflict_resolution:'sort', time_management:'sort', team_management:'sort', self_organization:'sort',
+  // Таймер-вызов
+  divergent:'timer', lateral:'timer', team_building:'timer', strategic_thinking:'timer',
+  // Мини-кейс
+  empathy:'case', delegation:'case', mentoring:'case',
+  // Угадай эмоцию
+  empathy_emotion:'emotion',
+};
+// Extra emotion skills
+const EMOTION_SKILLS=['empathy','emotional_intelligence','critical_thinking'];
+
+const EX_LABELS = {
+  dialog:  { icon:'💬', name:'Симулятор диалога',     desc:'Разыграй настоящий разговор и узнай как ты общаешься' },
+  sort:    { icon:'🃏', name:'Расставь по порядку',   desc:'Перетащи карточки в правильной последовательности' },
+  timer:   { icon:'⏱️', name:'Таймер-вызов',           desc:'Генерируй идеи быстро — на скорость думать полезно!' },
+  case:    { icon:'🗂️', name:'Мини-кейс',              desc:'Реальная ситуация — ты принимаешь решения' },
+  emotion: { icon:'🎭', name:'Угадай эмоцию',          desc:'Определи что чувствует человек в разных ситуациях' },
+};
+
+function initBlock4(){
+  const types=new Set();
+  if(INTERACTIVE_MAP[skillId]) types.add(INTERACTIVE_MAP[skillId]);
+  if(EMOTION_SKILLS.includes(skillId)) types.add('emotion');
+  // Universal: case и sort для всех
+  if(!types.size){ types.add('case'); types.add('sort'); }
+
+  if(!types.size) return;
+  document.getElementById('sec4').style.display='block';
+
+  const body=document.getElementById('body4');
+  let html='';
+  types.forEach(type=>{
+    const meta=EX_LABELS[type];
+    html+=`<a href="ex-${type}.html?skill=${skillId}&district=${districtId||''}"
+      style="display:flex;align-items:center;gap:14px;background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:10px;text-decoration:none;color:var(--text);box-shadow:0 2px 10px var(--shadow);transition:.2s"
+      onmouseenter="this.style.borderColor='var(--sage)';this.style.background='var(--sage-light)'"
+      onmouseleave="this.style.borderColor='';this.style.background=''">
+      <span style="font-size:2rem;flex-shrink:0">${meta.icon}</span>
+      <div style="flex:1">
+        <div style="font-size:.95rem;font-weight:900;color:var(--text)">${meta.name}</div>
+        <div style="font-size:.8rem;color:var(--text3);margin-top:3px">${meta.desc}</div>
+      </div>
+      <span style="font-size:1.1rem;color:var(--text3)">→</span>
+    </a>`;
+  });
+  body.innerHTML=html;
 }
 
 function repB3(type){

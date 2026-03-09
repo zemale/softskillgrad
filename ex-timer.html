@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Таймер-вызов — Softskillград</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .wrap{max-width:560px;margin:0 auto;padding:0 16px 60px;position:relative;z-index:5;}
+
+    /* Intro */
+    .intro{text-align:center;padding:30px 0 20px;}
+    .intro .icon{font-size:3.5rem;display:block;margin-bottom:12px;animation:float 3s ease-in-out infinite;}
+    .intro h1{font-size:1.5rem;font-weight:900;color:var(--text);margin-bottom:8px;}
+    .intro p{font-size:.93rem;color:var(--text2);line-height:1.6;max-width:380px;margin:0 auto 20px;}
+
+    .tips-row{display:flex;flex-direction:column;gap:6px;background:var(--sage-light);border:1.5px solid var(--sage-mid);border-radius:16px;padding:14px 16px;margin-bottom:20px;text-align:left;}
+    .tip{font-size:.85rem;color:#3a6a4a;line-height:1.4;}
+    .tip::before{content:'💡 ';}
+
+    /* Timer */
+    .timer-ring{position:relative;width:140px;height:140px;margin:0 auto 20px;}
+    .timer-ring svg{position:absolute;inset:0;transform:rotate(-90deg);}
+    .ring-bg{fill:none;stroke:var(--bg2);stroke-width:8;}
+    .ring-progress{fill:none;stroke:var(--sage);stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset .9s linear;}
+    .ring-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+    .timer-num{font-size:2.2rem;font-weight:900;color:var(--text);}
+    .timer-label{font-size:.7rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;}
+    .ring-progress.urgent{stroke:var(--peach);}
+
+    /* Textarea */
+    .prompt-card{background:var(--card);border:1.5px solid var(--border);border-radius:20px;padding:20px;box-shadow:0 4px 18px var(--shadow);margin-bottom:14px;}
+    .prompt-text{font-size:1rem;font-weight:700;color:var(--text);line-height:1.5;margin-bottom:14px;}
+    .idea-textarea{width:100%;min-height:160px;border:2px solid var(--border);border-radius:14px;padding:12px 14px;font-family:'Nunito',sans-serif;font-size:.93rem;color:var(--text);background:var(--bg);resize:none;outline:none;line-height:1.6;transition:.2s;}
+    .idea-textarea:focus{border-color:var(--sage);}
+    .idea-count{text-align:right;font-size:.8rem;font-weight:700;color:var(--text3);margin-top:6px;}
+    .idea-count span{color:var(--sage);font-size:1rem;}
+
+    /* Buttons */
+    .start-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--peach),#e07850);color:#fff;border:none;border-radius:16px;font-size:1.05rem;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;transition:.2s;box-shadow:0 4px 14px rgba(244,149,106,.35);}
+    .start-btn:hover{transform:translateY(-2px);}
+    .submit-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--sage),#5da07a);color:#fff;border:none;border-radius:15px;font-size:1rem;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;transition:.2s;box-shadow:0 4px 12px rgba(122,184,147,.3);}
+    .submit-btn:hover{transform:translateY(-1px);}
+
+    /* Result */
+    .result-card{background:var(--card);border:1.5px solid var(--border);border-radius:22px;padding:26px;text-align:center;box-shadow:0 4px 24px var(--shadow);animation:popIn .5s ease;}
+    .result-badge{font-size:4rem;display:block;margin-bottom:12px;}
+    .result-count{font-size:2.2rem;font-weight:900;color:var(--sage);}
+    .result-count span{font-size:.9rem;color:var(--text3);font-weight:600;}
+    .result-text{font-size:.93rem;color:var(--text2);line-height:1.6;margin:12px 0 20px;}
+    .ideas-list{background:var(--bg2);border-radius:14px;padding:14px;text-align:left;margin-bottom:18px;}
+    .ideas-list p{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:8px;}
+    .idea-item{font-size:.88rem;color:var(--text);padding:4px 0;border-bottom:1px solid var(--border);}
+    .idea-item:last-child{border:none;}
+    .idea-item::before{content:'✓ ';color:var(--sage);font-weight:800;}
+    .result-actions{display:flex;gap:10px;flex-wrap:wrap;}
+    .result-actions button,.result-actions a{flex:1;min-width:120px;padding:12px;border-radius:13px;font-size:.9rem;font-weight:800;cursor:pointer;text-align:center;text-decoration:none;font-family:'Nunito',sans-serif;transition:.2s;border:none;}
+    .btn-retry{background:linear-gradient(135deg,var(--peach),#e07850);color:#fff;}
+    .btn-back{background:var(--bg2);color:var(--text2);}
+    .btn-retry:hover,.btn-back:hover{transform:translateY(-1px);}
+
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+    .timer-urgent{animation:pulse .5s ease infinite;}
+  </style>
+</head>
+<body>
+<div class="bg-deco"><div class="bg-blob blob1"></div><div class="bg-blob blob2"></div><div class="bg-blob blob3"></div></div>
+
+<header>
+  <a href="#" class="back-btn" id="backBtn">← Навык</a>
+  <span class="header-title">⏱️ Таймер-вызов</span>
+</header>
+
+<div class="wrap">
+
+  <!-- INTRO -->
+  <div id="introView">
+    <div class="intro">
+      <span class="icon">⏱️</span>
+      <h1 id="heroTitle">Загрузка...</h1>
+      <p id="heroDesc"></p>
+    </div>
+    <div class="tips-row" id="tipsBlock"></div>
+    <button class="start-btn" onclick="startTimer()">Запустить таймер 🚀</button>
+  </div>
+
+  <!-- GAME -->
+  <div id="gameView" style="display:none">
+    <div class="timer-ring">
+      <svg width="140" height="140" viewBox="0 0 140 140">
+        <circle class="ring-bg" cx="70" cy="70" r="58"/>
+        <circle class="ring-progress" id="ringProgress" cx="70" cy="70" r="58" stroke-dasharray="364" stroke-dashoffset="0"/>
+      </svg>
+      <div class="ring-inner">
+        <div class="timer-num" id="timerNum">--</div>
+        <div class="timer-label">секунд</div>
+      </div>
+    </div>
+
+    <div class="prompt-card">
+      <div class="prompt-text" id="gamePrompt"></div>
+      <textarea class="idea-textarea" id="ideaInput" placeholder="Каждая идея с новой строки..."></textarea>
+      <div class="idea-count">Идей: <span id="ideaCountNum">0</span></div>
+    </div>
+    <button class="submit-btn" onclick="submitEarly()">✅ Готово — показать результат</button>
+  </div>
+
+  <!-- RESULT -->
+  <div id="resultView" style="display:none"></div>
+
+</div>
+
+<script>
+const params=new URLSearchParams(location.search);
+const skillId=params.get('skill');
+const districtId=params.get('district');
+let scenario, timerInterval, timeLeft;
+
+async function init(){
+  const [ir,sr]=await Promise.all([fetch('data/interactive.json'),fetch('data/skills.json')]);
+  const idata=await ir.json(); const sdata=await sr.json();
+  scenario=idata.timer[skillId]||idata.timer['divergent'];
+  let dist; for(const d of sdata.districts){if(d.skills.find(s=>s.id===skillId)){dist=d;break;}}
+  document.getElementById('backBtn').href=`skill.html?id=${skillId}&district=${districtId||dist?.id||''}`;
+  document.getElementById('heroTitle').textContent=scenario.title;
+  document.getElementById('heroDesc').textContent=scenario.prompt;
+  document.getElementById('gamePrompt').textContent=scenario.prompt;
+  const tb=document.getElementById('tipsBlock');
+  scenario.tips.forEach(t=>{const d=document.createElement('div');d.className='tip';d.textContent=t;tb.appendChild(d);});
+}
+
+function startTimer(){
+  document.getElementById('introView').style.display='none';
+  document.getElementById('gameView').style.display='block';
+  timeLeft=scenario.time;
+  const total=scenario.time;
+  const ring=document.getElementById('ringProgress');
+  const circumference=364;
+
+  // Count ideas on input
+  const ta=document.getElementById('ideaInput');
+  ta.addEventListener('input',()=>{
+    const ideas=ta.value.split('\n').filter(l=>l.trim().length>0);
+    document.getElementById('ideaCountNum').textContent=ideas.length;
+  });
+  ta.focus();
+
+  timerInterval=setInterval(()=>{
+    timeLeft--;
+    document.getElementById('timerNum').textContent=timeLeft;
+    ring.style.strokeDashoffset=circumference*(1-timeLeft/total);
+    if(timeLeft<=10){
+      ring.classList.add('urgent');
+      document.querySelector('.timer-ring').classList.add('timer-urgent');
+    }
+    if(timeLeft<=0){clearInterval(timerInterval);submitIdeas();}
+  },1000);
+  document.getElementById('timerNum').textContent=timeLeft;
+}
+
+function submitEarly(){ clearInterval(timerInterval); submitIdeas(); }
+
+function submitIdeas(){
+  const ta=document.getElementById('ideaInput');
+  const ideas=ta.value.split('\n').filter(l=>l.trim().length>0);
+  const count=ideas.length;
+  document.getElementById('gameView').style.display='none';
+
+  const res=scenario.results;
+  let result;
+  if(count>=res.great.min) result={...res.great};
+  else if(count>=res.good.min) result={...res.good};
+  else result={...res.ok};
+  result.text=result.text.replace('{count}',count);
+
+  document.getElementById('resultView').style.display='block';
+  const ideasHtml=ideas.slice(0,8).map(i=>`<div class="idea-item">${i.trim()}</div>`).join('');
+  const moreHtml=ideas.length>8?`<div class="idea-item" style="color:var(--text3)">...и ещё ${ideas.length-8} идей</div>`:'';
+  document.getElementById('resultView').innerHTML=`<div class="result-card">
+    <span class="result-badge">${result.badge}</span>
+    <div class="result-count">${count} <span>идей</span></div>
+    <div class="result-text">${result.text}</div>
+    <div class="ideas-list"><p>Твои идеи</p>${ideasHtml}${moreHtml}</div>
+    <div class="result-actions">
+      <button class="btn-retry" onclick="location.reload()">🔄 Ещё раз</button>
+      <a class="btn-back" href="skill.html?id=${skillId}&district=${districtId}">← К навыку</a>
+    </div>
+  </div>`;
+
+  if(count>=scenario.minIdeas){
+    const cur=+(localStorage.getItem(`ssg_skill_${skillId}`)||0);
+    if(cur<100) localStorage.setItem(`ssg_skill_${skillId}`,Math.min(100,cur+12));
+  }
+}
+
+init();
+</script>
+</body>
+</html>

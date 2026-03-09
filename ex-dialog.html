@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Симулятор диалога — Softskillград</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .wrap{max-width:580px;margin:0 auto;padding:0 16px 60px;position:relative;z-index:5;}
+    .hero{text-align:center;padding:28px 0 20px;}
+    .hero .icon{font-size:3rem;display:block;margin-bottom:10px;}
+    .hero h1{font-size:1.5rem;font-weight:900;color:var(--text);margin-bottom:6px;}
+    .hero p{font-size:.9rem;color:var(--text2);line-height:1.5;}
+
+    /* Scene card */
+    .scene-card{background:var(--card);border:1.5px solid var(--border);border-radius:22px;padding:24px;box-shadow:0 4px 20px var(--shadow);margin-bottom:16px;}
+    .scene-num{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:14px;}
+
+    /* Character message */
+    .char-msg{display:flex;align-items:flex-start;gap:12px;margin-bottom:20px;}
+    .char-av{width:46px;height:46px;border-radius:50%;background:var(--peach-light);border:2px solid var(--peach-mid);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;}
+    .char-bubble{background:var(--bg2);border-radius:4px 18px 18px 18px;padding:13px 16px;font-size:.95rem;line-height:1.5;color:var(--text);max-width:calc(100% - 58px);}
+    .char-name{font-size:.72rem;font-weight:800;color:var(--text3);margin-bottom:4px;}
+
+    /* Choices */
+    .choices-label{font-size:.8rem;font-weight:800;color:var(--text3);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;}
+    .choices{display:flex;flex-direction:column;gap:8px;}
+    .choice-btn{background:var(--bg);border:2px solid var(--border);border-radius:14px;padding:13px 16px;font-size:.9rem;font-weight:600;color:var(--text);cursor:pointer;text-align:left;font-family:'Nunito',sans-serif;transition:.2s;line-height:1.4;}
+    .choice-btn:hover:not(:disabled){border-color:var(--sage);background:var(--sage-light);}
+    .choice-btn.picked{border-color:var(--peach);background:var(--peach-light);color:#b05020;}
+    .choice-btn.best{border-color:var(--sage);background:var(--sage-light);color:#3a7a55;}
+    .choice-btn:disabled{cursor:default;}
+
+    /* Reaction */
+    .reaction-wrap{margin-top:16px;animation:fadeUp .3s ease;}
+    .reaction-msg{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;}
+    .reaction-av{width:36px;height:36px;border-radius:50%;background:var(--bg2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+    .reaction-bubble{background:var(--bg2);border-radius:4px 14px 14px 14px;padding:10px 14px;font-size:.88rem;line-height:1.4;color:var(--text);font-style:italic;}
+    .feedback-box{background:var(--sage-light);border-left:3px solid var(--sage);border-radius:0 12px 12px 0;padding:12px 14px;font-size:.85rem;color:#2a5a3a;line-height:1.5;margin-top:10px;}
+
+    .next-btn{width:100%;margin-top:16px;padding:13px;background:linear-gradient(135deg,var(--sage),#5da07a);color:#fff;border:none;border-radius:14px;font-size:.95rem;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;transition:.2s;box-shadow:0 4px 12px rgba(122,184,147,.3);}
+    .next-btn:hover{transform:translateY(-1px);}
+
+    /* Score tracker */
+    .score-bar{display:flex;gap:8px;justify-content:center;margin-bottom:20px;}
+    .score-dot{width:12px;height:12px;border-radius:50%;background:var(--bg2);border:2px solid var(--border);transition:.3s;}
+    .score-dot.great{background:var(--sage);border-color:var(--sage);}
+    .score-dot.ok{background:var(--yellow);border-color:var(--yellow);}
+    .score-dot.miss{background:var(--peach);border-color:var(--peach);}
+
+    /* Result */
+    .result-card{background:var(--card);border:1.5px solid var(--border);border-radius:22px;padding:28px;text-align:center;box-shadow:0 4px 24px var(--shadow);animation:popIn .5s ease;}
+    .result-badge{font-size:4rem;display:block;margin-bottom:14px;}
+    .result-score{font-size:2rem;font-weight:900;margin-bottom:6px;}
+    .result-text{font-size:.95rem;color:var(--text2);line-height:1.6;margin-bottom:20px;}
+    .result-actions{display:flex;gap:12px;flex-wrap:wrap;}
+    .result-actions a,.result-actions button{flex:1;min-width:120px;padding:13px;border-radius:14px;font-size:.9rem;font-weight:800;cursor:pointer;text-align:center;text-decoration:none;font-family:'Nunito',sans-serif;transition:.2s;border:none;}
+    .btn-retry{background:linear-gradient(135deg,var(--peach),#e07850);color:#fff;}
+    .btn-back{background:var(--bg2);color:var(--text2);}
+    .btn-retry:hover,.btn-back:hover{transform:translateY(-1px);}
+  </style>
+</head>
+<body>
+<div class="bg-deco"><div class="bg-blob blob1"></div><div class="bg-blob blob2"></div><div class="bg-blob blob3"></div></div>
+
+<header>
+  <a href="#" class="back-btn" id="backBtn">← Навык</a>
+  <span class="header-title">💬 Симулятор диалога</span>
+</header>
+
+<div class="wrap">
+  <div class="hero" id="heroBlock">
+    <span class="icon">💬</span>
+    <h1 id="heroTitle">Загрузка...</h1>
+    <p id="heroDesc"></p>
+    <div style="margin-top:20px;display:flex;align-items:center;gap:12px;background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:14px 18px;box-shadow:0 2px 10px var(--shadow);">
+      <span id="charAvHero" style="font-size:2rem;"></span>
+      <div>
+        <div style="font-size:.95rem;font-weight:900;color:var(--text)" id="charNameHero"></div>
+        <div style="font-size:.8rem;color:var(--text3)" id="charRoleHero"></div>
+      </div>
+    </div>
+    <button class="next-btn" style="margin-top:20px" onclick="startDialog()">Начать диалог →</button>
+  </div>
+
+  <div id="gameBlock" style="display:none">
+    <div class="score-bar" id="scoreDots"></div>
+    <div id="sceneWrap"></div>
+  </div>
+
+  <div id="resultBlock" style="display:none"></div>
+</div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const skillId = params.get('skill');
+const districtId = params.get('district');
+let scenario, currentScene=0, totalScore=0, dots=[];
+
+async function init(){
+  const [ir, sr] = await Promise.all([fetch('data/interactive.json'), fetch('data/skills.json')]);
+  const idata = await ir.json();
+  const sdata = await sr.json();
+
+  scenario = idata.dialog[skillId];
+  if(!scenario){ document.getElementById('heroTitle').textContent='Упражнение не найдено'; return; }
+
+  // Find skill for back link
+  let dist;
+  for(const d of sdata.districts){ if(d.skills.find(s=>s.id===skillId)){dist=d;break;} }
+  document.getElementById('backBtn').href = `skill.html?id=${skillId}&district=${districtId||dist?.id||''}`;
+
+  document.getElementById('heroTitle').textContent = scenario.title;
+  document.getElementById('heroDesc').textContent = scenario.desc;
+  document.getElementById('charAvHero').textContent = scenario.character.avatar;
+  document.getElementById('charNameHero').textContent = scenario.character.name;
+  document.getElementById('charRoleHero').textContent = scenario.character.role;
+
+  // Build dots
+  const dotsWrap = document.getElementById('scoreDots');
+  scenario.scenes.forEach((_,i)=>{
+    const d=document.createElement('div'); d.className='score-dot'; d.id=`dot${i}`;
+    dotsWrap.appendChild(d); dots.push(d);
+  });
+}
+
+function startDialog(){
+  document.getElementById('heroBlock').style.display='none';
+  document.getElementById('gameBlock').style.display='block';
+  renderScene();
+}
+
+function renderScene(){
+  if(currentScene>=scenario.scenes.length){ showResult(); return; }
+  const scene=scenario.scenes[currentScene];
+  const wrap=document.getElementById('sceneWrap');
+  wrap.innerHTML=`<div class="scene-card" id="activeScene">
+    <div class="scene-num">Сцена ${currentScene+1} из ${scenario.scenes.length}</div>
+    <div class="char-msg">
+      <div class="char-av">${scenario.character.avatar}</div>
+      <div>
+        <div class="char-name">${scenario.character.name}</div>
+        <div class="char-bubble">${scene.char}</div>
+      </div>
+    </div>
+    <div class="choices-label">Твой ответ:</div>
+    <div class="choices" id="choices">
+      ${scene.choices.map((c,i)=>`<button class="choice-btn" onclick="pick(${i})">${c.text}</button>`).join('')}
+    </div>
+    <div id="reaction" style="display:none"></div>
+    <button class="next-btn" id="nextBtn" style="display:none" onclick="nextScene()">
+      ${currentScene<scenario.scenes.length-1 ? 'Следующая сцена →' : 'Посмотреть результат →'}
+    </button>
+  </div>`;
+}
+
+function pick(idx){
+  const scene=scenario.scenes[currentScene];
+  const choice=scene.choices[idx];
+  const btns=document.querySelectorAll('.choice-btn');
+  btns.forEach(b=>b.disabled=true);
+
+  // Find best score
+  const maxS=Math.max(...scene.choices.map(c=>c.score));
+  btns[idx].classList.add('picked');
+  scene.choices.forEach((c,i)=>{ if(c.score===maxS) btns[i].classList.add('best'); });
+
+  totalScore+=choice.score;
+  const dot=dots[currentScene];
+  if(choice.score===maxS) dot.className='score-dot great';
+  else if(choice.score>0) dot.className='score-dot ok';
+  else dot.className='score-dot miss';
+
+  // Show reaction
+  document.getElementById('reaction').style.display='block';
+  document.getElementById('reaction').innerHTML=`<div class="reaction-wrap">
+    <div class="reaction-msg">
+      <div class="reaction-av">${scenario.character.avatar}</div>
+      <div class="reaction-bubble">${choice.reaction}</div>
+    </div>
+    <div class="feedback-box">💡 ${choice.feedback}</div>
+  </div>`;
+  document.getElementById('nextBtn').style.display='block';
+}
+
+function nextScene(){ currentScene++; renderScene(); }
+
+function showResult(){
+  document.getElementById('gameBlock').style.display='none';
+  const res = scenario.results.slice().reverse().find(r=>totalScore>=r.min) || scenario.results[scenario.results.length-1];
+  document.getElementById('resultBlock').style.display='block';
+  document.getElementById('resultBlock').innerHTML=`<div class="result-card">
+    <span class="result-badge">${res.badge}</span>
+    <div class="result-score" style="color:var(--sage)">${totalScore} / ${scenario.maxScore} очков</div>
+    <div class="result-text">${res.text}</div>
+    <div class="result-actions">
+      <button class="btn-retry" onclick="location.reload()">🔄 Попробовать ещё раз</button>
+      <a class="btn-back" href="skill.html?id=${skillId}&district=${districtId}">← К навыку</a>
+    </div>
+  </div>`;
+  // Award XP
+  if(totalScore >= scenario.maxScore*0.7){
+    const cur=+(localStorage.getItem(`ssg_skill_${skillId}`)||0);
+    if(cur<100) localStorage.setItem(`ssg_skill_${skillId}`, Math.min(100,cur+15));
+  }
+}
+
+init();
+</script>
+</body>
+</html>

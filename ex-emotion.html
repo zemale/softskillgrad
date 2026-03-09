@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Угадай эмоцию — Softskillград</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .wrap{max-width:560px;margin:0 auto;padding:0 16px 60px;position:relative;z-index:5;}
+    .hero{text-align:center;padding:28px 0 20px;}
+    .hero .icon{font-size:3.5rem;display:block;margin-bottom:10px;animation:float 3s ease-in-out infinite;}
+    .hero h1{font-size:1.5rem;font-weight:900;color:var(--text);margin-bottom:8px;}
+    .hero p{font-size:.9rem;color:var(--text2);line-height:1.5;margin-bottom:20px;}
+
+    /* Progress */
+    .progress-row{display:flex;gap:6px;margin-bottom:20px;}
+    .prog-pip{flex:1;height:6px;border-radius:3px;background:var(--bg2);transition:.3s;}
+    .prog-pip.correct{background:var(--sage);}
+    .prog-pip.wrong{background:var(--peach);}
+    .prog-pip.current{background:var(--yellow);}
+
+    /* Scene */
+    .scene-card{background:var(--card);border:1.5px solid var(--border);border-radius:20px;padding:22px;box-shadow:0 4px 18px var(--shadow);margin-bottom:14px;animation:fadeUp .35s ease;}
+    .scene-num{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:12px;}
+    .situation-box{background:linear-gradient(135deg,var(--lav-light),var(--sky-light));border:1.5px solid var(--lavender);border-radius:14px;padding:14px 16px;margin-bottom:16px;}
+    .sit-label{font-size:.72rem;font-weight:800;color:#5a4090;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+    .sit-text{font-size:.93rem;line-height:1.6;color:var(--text);font-weight:600;}
+
+    .q-text{font-size:1rem;font-weight:800;color:var(--text);margin-bottom:14px;}
+    .emotion-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .emotion-btn{
+      background:var(--bg);border:2px solid var(--border);border-radius:14px;
+      padding:14px 12px;font-size:.9rem;font-weight:700;color:var(--text);
+      cursor:pointer;text-align:center;font-family:'Nunito',sans-serif;transition:.2s;line-height:1.4;
+    }
+    .emotion-btn:hover:not(:disabled){border-color:var(--lavender);background:var(--lav-light);}
+    .emotion-btn.correct{border-color:var(--sage);background:var(--sage-light);color:#3a7a55;}
+    .emotion-btn.wrong{border-color:var(--peach);background:var(--peach-light);color:#b05020;}
+    .emotion-btn.show-correct{border-color:var(--sage);background:var(--sage-light);color:#3a7a55;opacity:.7;}
+    .emotion-btn:disabled{cursor:default;}
+
+    /* Feedback */
+    .feedback-anim{animation:fadeUp .3s ease;}
+    .feedback-correct{background:var(--sage-light);border:1.5px solid var(--sage-mid);border-radius:14px;padding:14px;margin-top:12px;}
+    .feedback-wrong{background:var(--peach-light);border:1.5px solid var(--peach-mid);border-radius:14px;padding:14px;margin-top:12px;}
+    .fb-title{font-size:.9rem;font-weight:900;margin-bottom:6px;}
+    .fb-text{font-size:.85rem;line-height:1.5;color:var(--text2);}
+
+    .next-btn{width:100%;margin-top:14px;padding:13px;background:linear-gradient(135deg,var(--sage),#5da07a);color:#fff;border:none;border-radius:14px;font-size:.95rem;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;transition:.2s;}
+    .next-btn:hover{transform:translateY(-1px);}
+
+    /* Streak */
+    .streak-badge{display:inline-flex;align-items:center;gap:6px;background:var(--yellow-light);border:1.5px solid var(--yellow);border-radius:12px;padding:6px 14px;font-size:.82rem;font-weight:800;color:#8a6a10;margin-bottom:14px;}
+
+    /* Result */
+    .result-card{background:var(--card);border:1.5px solid var(--border);border-radius:22px;padding:26px;text-align:center;box-shadow:0 4px 24px var(--shadow);animation:popIn .5s ease;}
+    .result-badge{font-size:4rem;display:block;margin-bottom:12px;}
+    .result-score{font-size:1.8rem;font-weight:900;color:var(--sage);margin-bottom:6px;}
+    .result-pct{font-size:.9rem;color:var(--text3);margin-bottom:10px;}
+    .result-text{font-size:.93rem;color:var(--text2);line-height:1.6;margin-bottom:18px;}
+    .result-actions{display:flex;gap:10px;flex-wrap:wrap;}
+    .result-actions button,.result-actions a{flex:1;min-width:120px;padding:12px;border-radius:13px;font-size:.9rem;font-weight:800;cursor:pointer;text-align:center;text-decoration:none;font-family:'Nunito',sans-serif;transition:.2s;border:none;}
+    .btn-retry{background:linear-gradient(135deg,var(--peach),#e07850);color:#fff;}
+    .btn-back{background:var(--bg2);color:var(--text2);}
+    .btn-retry:hover,.btn-back:hover{transform:translateY(-1px);}
+  </style>
+</head>
+<body>
+<div class="bg-deco"><div class="bg-blob blob1"></div><div class="bg-blob blob2"></div><div class="bg-blob blob3"></div></div>
+
+<header>
+  <a href="#" class="back-btn" id="backBtn">← Навык</a>
+  <span class="header-title">❤️ Угадай эмоцию</span>
+</header>
+
+<div class="wrap">
+  <!-- Intro -->
+  <div id="introView">
+    <div class="hero">
+      <span class="icon">🎭</span>
+      <h1>Угадай эмоцию</h1>
+      <p>Прочитай ситуацию и определи что чувствует человек.<br>Это тренирует эмпатию и эмоциональный интеллект.</p>
+    </div>
+    <div style="background:var(--lav-light);border:1.5px solid var(--lavender);border-radius:16px;padding:16px;margin-bottom:20px;">
+      <div style="font-size:.85rem;color:#5a4090;font-weight:700;margin-bottom:4px;">💡 Как играть</div>
+      <div style="font-size:.85rem;color:var(--text2);line-height:1.5;">Читай ситуацию внимательно. Думай не только о действии, но и о том что человек чувствует внутри.</div>
+    </div>
+    <button style="width:100%;padding:14px;background:linear-gradient(135deg,var(--lavender),#8878c0);color:#fff;border:none;border-radius:16px;font-size:1rem;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;box-shadow:0 4px 14px rgba(184,169,217,.4)" onclick="startGame()">Начать →</button>
+  </div>
+
+  <!-- Game -->
+  <div id="gameView" style="display:none">
+    <div id="streakWrap" style="display:none;text-align:center">
+      <div class="streak-badge">🔥 Серия: <span id="streakNum">0</span></div>
+    </div>
+    <div class="progress-row" id="progressRow"></div>
+    <div id="sceneWrap"></div>
+  </div>
+
+  <!-- Result -->
+  <div id="resultView" style="display:none"></div>
+</div>
+
+<script>
+const params=new URLSearchParams(location.search);
+const skillId=params.get('skill');
+const districtId=params.get('district');
+let questions=[], current=0, correct=0, streak=0;
+
+async function init(){
+  const [ir,sr]=await Promise.all([fetch('data/interactive.json'),fetch('data/skills.json')]);
+  const idata=await ir.json(); const sdata=await sr.json();
+  // Merge questions from empathy and emotional_intelligence
+  const q1=idata.emotion[skillId]||[];
+  const q2=idata.emotion['empathy']||[];
+  const q3=idata.emotion['emotional_intelligence']||[];
+  questions=[...q1,...q2,...q3].filter((q,i,a)=>a.findIndex(x=>x.situation===q.situation)===i);
+  if(!questions.length){questions=[...q2,...q3];}
+
+  let dist; for(const d of sdata.districts){if(d.skills.find(s=>s.id===skillId)){dist=d;break;}}
+  document.getElementById('backBtn').href=`skill.html?id=${skillId}&district=${districtId||dist?.id||''}`;
+
+  // Build progress pips
+  const pr=document.getElementById('progressRow');
+  questions.forEach((_,i)=>{const p=document.createElement('div');p.className='prog-pip';p.id=`pp${i}`;pr.appendChild(p);});
+  document.getElementById(`pp0`).classList.add('current');
+}
+
+function startGame(){
+  document.getElementById('introView').style.display='none';
+  document.getElementById('gameView').style.display='block';
+  renderQuestion();
+}
+
+function renderQuestion(){
+  if(current>=questions.length){showResult();return;}
+  const q=questions[current];
+  const wrap=document.getElementById('sceneWrap');
+  wrap.innerHTML=`<div class="scene-card">
+    <div class="scene-num">Вопрос ${current+1} из ${questions.length}</div>
+    <div class="situation-box">
+      <div class="sit-label">📖 Ситуация</div>
+      <div class="sit-text">${q.situation}</div>
+    </div>
+    <div class="q-text">${q.question}</div>
+    <div class="emotion-grid" id="emoGrid">
+      ${q.options.map((o,i)=>`<button class="emotion-btn" onclick="answer('${o.id}',${i})">${o.text}</button>`).join('')}
+    </div>
+    <div id="feedback" style="display:none"></div>
+    <button class="next-btn" id="nextBtn" style="display:none" onclick="nextQ()">
+      ${current<questions.length-1?'Следующий вопрос →':'Посмотреть результат →'}
+    </button>
+  </div>`;
+}
+
+function answer(id, idx){
+  const q=questions[current];
+  const btns=document.querySelectorAll('.emotion-btn');
+  btns.forEach(b=>b.disabled=true);
+
+  const isCorrect=q.options[idx].correct;
+  btns[idx].classList.add(isCorrect?'correct':'wrong');
+  q.options.forEach((o,i)=>{ if(o.correct&&i!==idx) btns[i].classList.add('show-correct'); });
+
+  // Streak
+  if(isCorrect){ correct++; streak++; }
+  else{ streak=0; }
+  if(streak>=2){ document.getElementById('streakWrap').style.display='block'; document.getElementById('streakNum').textContent=streak; }
+  else{ document.getElementById('streakWrap').style.display='none'; }
+
+  // Pip
+  document.getElementById(`pp${current}`).classList.remove('current');
+  document.getElementById(`pp${current}`).classList.add(isCorrect?'correct':'wrong');
+  if(current+1<questions.length) document.getElementById(`pp${current+1}`).classList.add('current');
+
+  const fb=document.getElementById('feedback');
+  fb.style.display='block';
+  const chosen=q.options[idx];
+  fb.innerHTML=`<div class="${isCorrect?'feedback-correct':'feedback-wrong'} feedback-anim">
+    <div class="fb-title">${isCorrect?'✅ Верно!':'❌ Не совсем...'}</div>
+    <div class="fb-text">${chosen.explanation}</div>
+    ${!isCorrect?`<div class="fb-text" style="margin-top:8px;font-weight:700">Правильный ответ: ${q.options.find(o=>o.correct).text}</div>`:''}
+  </div>`;
+  document.getElementById('nextBtn').style.display='block';
+}
+
+function nextQ(){ current++; renderQuestion(); }
+
+function showResult(){
+  document.getElementById('gameView').style.display='none';
+  const total=questions.length;
+  const pct=Math.round(correct/total*100);
+  let badge,text;
+  if(pct>=80){badge='🎭';text='Эксперт по эмоциям! Ты чётко понимаешь что чувствуют люди — это редкий и ценный дар.';}
+  else if(pct>=50){badge='💚';text=`${correct} из ${total} — хорошо! Ты умеешь считывать эмоции. С практикой будет ещё лучше.`;}
+  else{badge='🌱';text=`${correct} из ${total} — начало пути! Эмпатия тренируется. Попробуй ещё раз — уже будет легче.`;}
+
+  document.getElementById('resultView').style.display='block';
+  document.getElementById('resultView').innerHTML=`<div class="result-card">
+    <span class="result-badge">${badge}</span>
+    <div class="result-score">${correct} / ${total}</div>
+    <div class="result-pct">${pct}% правильных ответов</div>
+    <div class="result-text">${text}</div>
+    <div class="result-actions">
+      <button class="btn-retry" onclick="location.reload()">🔄 Ещё раз</button>
+      <a class="btn-back" href="skill.html?id=${skillId}&district=${districtId}">← К навыку</a>
+    </div>
+  </div>`;
+  if(pct>=60){
+    const cur=+(localStorage.getItem(`ssg_skill_${skillId}`)||0);
+    if(cur<100) localStorage.setItem(`ssg_skill_${skillId}`,Math.min(100,cur+12));
+  }
+}
+
+init();
+</script>
+</body>
+</html>

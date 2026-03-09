@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Мини-кейс — Softskillград</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .wrap{max-width:580px;margin:0 auto;padding:0 16px 60px;position:relative;z-index:5;}
+    .hero{text-align:center;padding:28px 0 20px;}
+    .hero .icon{font-size:3rem;display:block;margin-bottom:10px;}
+    .hero h1{font-size:1.45rem;font-weight:900;color:var(--text);margin-bottom:6px;}
+    .hero p{font-size:.9rem;color:var(--text2);line-height:1.5;margin-bottom:20px;}
+
+    /* Situation card */
+    .situation-card{background:linear-gradient(135deg,var(--peach-light),var(--yellow-light));border:1.5px solid var(--peach-mid);border-radius:20px;padding:20px;margin-bottom:18px;box-shadow:0 3px 14px var(--shadow);}
+    .sit-label{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#b05020;margin-bottom:8px;}
+    .sit-text{font-size:.95rem;color:var(--text);line-height:1.6;font-weight:600;}
+
+    /* Step indicator */
+    .steps-row{display:flex;gap:6px;margin-bottom:18px;}
+    .step-pip{flex:1;height:5px;border-radius:3px;background:var(--bg2);transition:.3s;}
+    .step-pip.active{background:var(--peach);}
+    .step-pip.done{background:var(--sage);}
+
+    /* Question */
+    .question-card{background:var(--card);border:1.5px solid var(--border);border-radius:20px;padding:22px;box-shadow:0 4px 18px var(--shadow);margin-bottom:14px;}
+    .q-label{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);margin-bottom:10px;}
+    .q-text{font-size:1rem;font-weight:700;color:var(--text);line-height:1.5;margin-bottom:16px;}
+    .choices{display:flex;flex-direction:column;gap:8px;}
+    .choice-btn{background:var(--bg);border:2px solid var(--border);border-radius:13px;padding:13px 16px;font-size:.9rem;font-weight:600;color:var(--text);cursor:pointer;text-align:left;font-family:'Nunito',sans-serif;transition:.2s;line-height:1.4;}
+    .choice-btn:hover:not(:disabled){border-color:var(--sage);background:var(--sage-light);}
+    .choice-btn.best{border-color:var(--sage);background:var(--sage-light);color:#3a7a55;}
+    .choice-btn.picked.good{border-color:var(--sage);background:var(--sage-light);color:#3a7a55;}
+    .choice-btn.picked.ok{border-color:var(--yellow);background:var(--yellow-light);color:#8a6a10;}
+    .choice-btn.picked.bad{border-color:var(--peach);background:var(--peach-light);color:#b05020;}
+    .choice-btn:disabled{cursor:default;}
+
+    /* Score indicator */
+    .score-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:10px;font-size:.82rem;font-weight:800;}
+    .score-2{background:var(--sage-light);color:#3a7a55;}
+    .score-1{background:var(--yellow-light);color:#8a6a10;}
+    .score-0{background:var(--peach-light);color:#b05020;}
+
+    /* Feedback */
+    .feedback-wrap{margin-top:14px;animation:fadeUp .3s ease;}
+    .feedback-box{background:var(--bg2);border-left:3px solid var(--sage);border-radius:0 12px 12px 0;padding:12px 14px;font-size:.85rem;color:var(--text2);line-height:1.5;}
+    .next-btn{width:100%;margin-top:14px;padding:13px;background:linear-gradient(135deg,var(--sage),#5da07a);color:#fff;border:none;border-radius:14px;font-size:.95rem;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;transition:.2s;}
+    .next-btn:hover{transform:translateY(-1px);}
+
+    /* Result */
+    .result-card{background:var(--card);border:1.5px solid var(--border);border-radius:22px;padding:26px;text-align:center;box-shadow:0 4px 24px var(--shadow);animation:popIn .5s ease;}
+    .result-badge{font-size:4rem;display:block;margin-bottom:12px;}
+    .result-score{font-size:1.8rem;font-weight:900;color:var(--sage);margin-bottom:6px;}
+    .result-text{font-size:.93rem;color:var(--text2);line-height:1.6;margin-bottom:18px;}
+    .result-actions{display:flex;gap:10px;flex-wrap:wrap;}
+    .result-actions button,.result-actions a{flex:1;min-width:120px;padding:12px;border-radius:13px;font-size:.9rem;font-weight:800;cursor:pointer;text-align:center;text-decoration:none;font-family:'Nunito',sans-serif;transition:.2s;border:none;}
+    .btn-retry{background:linear-gradient(135deg,var(--peach),#e07850);color:#fff;}
+    .btn-back{background:var(--bg2);color:var(--text2);}
+    .btn-retry:hover,.btn-back:hover{transform:translateY(-1px);}
+  </style>
+</head>
+<body>
+<div class="bg-deco"><div class="bg-blob blob1"></div><div class="bg-blob blob2"></div><div class="bg-blob blob3"></div></div>
+
+<header>
+  <a href="#" class="back-btn" id="backBtn">← Навык</a>
+  <span class="header-title">🗂️ Мини-кейс</span>
+</header>
+
+<div class="wrap">
+  <!-- Intro -->
+  <div id="introView">
+    <div class="hero">
+      <span class="icon" id="heroIcon">📋</span>
+      <h1 id="heroTitle">Загрузка...</h1>
+      <p id="heroDesc"></p>
+    </div>
+    <button style="width:100%;padding:14px;background:linear-gradient(135deg,var(--peach),#e07850);color:#fff;border:none;border-radius:16px;font-size:1rem;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;transition:.2s;box-shadow:0 4px 14px rgba(244,149,106,.35)" onclick="startCase()">Начать кейс →</button>
+  </div>
+
+  <!-- Game -->
+  <div id="gameView" style="display:none">
+    <div class="steps-row" id="stepPips"></div>
+    <div class="situation-card">
+      <div class="sit-label">🗂️ Ситуация</div>
+      <div class="sit-text" id="sitText"></div>
+    </div>
+    <div class="question-card">
+      <div class="q-label">Шаг <span id="stepNum">1</span> из <span id="stepTotal">3</span></div>
+      <div class="q-text" id="qText"></div>
+      <div class="choices" id="choices"></div>
+      <div id="feedback" style="display:none"></div>
+      <button class="next-btn" id="nextBtn" style="display:none" onclick="nextStep()">Следующая ситуация →</button>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div id="resultView" style="display:none"></div>
+</div>
+
+<script>
+const params=new URLSearchParams(location.search);
+const skillId=params.get('skill');
+const districtId=params.get('district');
+let scenario, step=0, totalScore=0;
+
+async function init(){
+  const [ir,sr]=await Promise.all([fetch('data/interactive.json'),fetch('data/skills.json')]);
+  const idata=await ir.json(); const sdata=await sr.json();
+  scenario=idata.case[skillId]||idata.case['conflict_resolution'];
+  let dist; for(const d of sdata.districts){if(d.skills.find(s=>s.id===skillId)){dist=d;break;}}
+  document.getElementById('backBtn').href=`skill.html?id=${skillId}&district=${districtId||dist?.id||''}`;
+  document.getElementById('heroIcon').textContent=scenario.avatar||'📋';
+  document.getElementById('heroTitle').textContent=scenario.title;
+  document.getElementById('heroDesc').textContent=scenario.desc;
+}
+
+function startCase(){
+  document.getElementById('introView').style.display='none';
+  document.getElementById('gameView').style.display='block';
+  // Build pips
+  const pips=document.getElementById('stepPips');
+  scenario.steps.forEach((_,i)=>{const p=document.createElement('div');p.className='step-pip';p.id=`pip${i}`;pips.appendChild(p);});
+  renderStep();
+}
+
+function renderStep(){
+  if(step>=scenario.steps.length){showResult();return;}
+  const s=scenario.steps[step];
+  document.getElementById('sitText').textContent=s.situation;
+  document.getElementById('stepNum').textContent=step+1;
+  document.getElementById('stepTotal').textContent=scenario.steps.length;
+  document.getElementById('nextBtn').style.display='none';
+  document.getElementById('feedback').style.display='none';
+
+  // Update pips
+  scenario.steps.forEach((_,i)=>{
+    const p=document.getElementById(`pip${i}`);
+    p.className='step-pip'+(i<step?' done':i===step?' active':'');
+  });
+
+  const ch=document.getElementById('choices');
+  ch.innerHTML=s.choices.map((c,i)=>`<button class="choice-btn" onclick="pick(${i})">${c.text}</button>`).join('');
+}
+
+function pick(idx){
+  const s=scenario.steps[step];
+  const c=s.choices[idx];
+  const btns=document.querySelectorAll('.choice-btn');
+  btns.forEach(b=>b.disabled=true);
+
+  const maxS=Math.max(...s.choices.map(x=>x.score));
+  const cls=c.score===maxS?'good':c.score>0?'ok':'bad';
+  btns[idx].classList.add('picked',cls);
+  s.choices.forEach((x,i)=>{if(x.score===maxS) btns[i].classList.add('best');});
+
+  totalScore+=c.score;
+  const scoreLabel=c.score===maxS?'✅ Отлично':c.score>0?'👍 Неплохо':'❌ Не то';
+  const scoreClass=c.score===maxS?'score-2':c.score>0?'score-1':'score-0';
+
+  const fb=document.getElementById('feedback');
+  fb.style.display='block';
+  fb.innerHTML=`<div class="feedback-wrap">
+    <span class="score-chip ${scoreClass}">${scoreLabel}</span>
+    <div class="feedback-box" style="margin-top:8px">💡 ${c.feedback}</div>
+  </div>`;
+
+  const nb=document.getElementById('nextBtn');
+  nb.style.display='block';
+  nb.textContent=step<scenario.steps.length-1?'Следующая ситуация →':'Посмотреть итог →';
+}
+
+function nextStep(){step++;renderStep();}
+
+function showResult(){
+  document.getElementById('gameView').style.display='none';
+  const max=scenario.maxScore;
+  const res=scenario.results.slice().reverse().find(r=>totalScore>=r.min)||scenario.results[scenario.results.length-1];
+  document.getElementById('resultView').style.display='block';
+  document.getElementById('resultView').innerHTML=`<div class="result-card">
+    <span class="result-badge">${res.badge}</span>
+    <div class="result-score">${totalScore} / ${max} очков</div>
+    <div class="result-text">${res.text}</div>
+    <div class="result-actions">
+      <button class="btn-retry" onclick="location.reload()">🔄 Попробовать снова</button>
+      <a class="btn-back" href="skill.html?id=${skillId}&district=${districtId}">← К навыку</a>
+    </div>
+  </div>`;
+  if(totalScore>=max*0.6){
+    const cur=+(localStorage.getItem(`ssg_skill_${skillId}`)||0);
+    if(cur<100) localStorage.setItem(`ssg_skill_${skillId}`,Math.min(100,cur+13));
+  }
+}
+
+init();
+</script>
+</body>
+</html>

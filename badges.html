@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мои ачивки 🏅 — SoftSkillGrad</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .badges-page { max-width: 800px; margin: 0 auto; padding: 20px; }
+    .badges-page h1 { text-align: center; margin-bottom: 8px; }
+    .badges-subtitle { text-align: center; color: #888; margin-bottom: 28px; }
+    .badges-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    @media (max-width: 600px) { .badges-grid { grid-template-columns: repeat(2, 1fr); } }
+    .badge-card { border-radius: 14px; padding: 18px 14px; text-align: center; transition: transform 0.2s; }
+    .badge-card:hover { transform: translateY(-3px); }
+    .badge-card.earned { background: linear-gradient(135deg, #fdf6ec, #ffe0b2); box-shadow: 0 4px 16px rgba(0,0,0,0.10); }
+    .badge-card.locked { background: #f5f5f5; opacity: 0.7; }
+    .badge-card .bc-icon { font-size: 40px; margin-bottom: 8px; }
+    .badge-card.locked .bc-icon { filter: grayscale(1); }
+    .badge-card .bc-name { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+    .badge-card.locked .bc-name { color: #aaa; }
+    .badge-card .bc-desc { font-size: 12px; color: #666; }
+    .badge-card.locked .bc-desc { color: #bbb; }
+    .back-link { display: inline-block; margin-bottom: 20px; color: var(--sage); text-decoration: none; font-weight: 600; }
+    .back-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="badges-page">
+    <a href="index.html" class="back-link">← На главную</a>
+    <h1>Мои ачивки 🏅</h1>
+    <p class="badges-subtitle">Собери все — открой мастера</p>
+    <div class="badges-grid" id="badgesGrid">Загрузка...</div>
+  </div>
+  <script>
+    var unlocked = [];
+    try { unlocked = JSON.parse(localStorage.getItem('ssg_badges') || '[]'); } catch(e){}
+
+    fetch('data/badges.json').then(function(r){ return r.json(); }).then(function(badges) {
+      var grid = document.getElementById('badgesGrid');
+      grid.innerHTML = '';
+      badges.forEach(function(b) {
+        var isEarned = unlocked.indexOf(b.id) !== -1;
+        var isSecretLocked = b.secret && !isEarned;
+        var card = document.createElement('div');
+        card.className = 'badge-card ' + (isEarned ? 'earned' : 'locked');
+        if (isSecretLocked) {
+          card.innerHTML = '<div class="bc-icon">🔒</div><div class="bc-name">Секретная ачивка</div><div class="bc-desc">Заработай чтобы узнать</div>';
+        } else {
+          card.innerHTML = '<div class="bc-icon">' + b.icon + '</div><div class="bc-name">' + b.name + '</div><div class="bc-desc">' + b.desc + '</div>';
+        }
+        grid.appendChild(card);
+      });
+    });
+  </script>
+  <script src="achievements.js"></script>
+</body>
+</html>

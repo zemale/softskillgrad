@@ -1,0 +1,13 @@
+[
+  {"id": "early_bird", "icon": "🌅", "name": "Ранняя пташка", "desc": "Зашёл до 9 утра", "secret": false},
+  {"id": "night_owl", "icon": "🌕", "name": "Ночная сова", "desc": "Зашёл после 23:00", "secret": true},
+  {"id": "on_fire", "icon": "🔥", "name": "В потоке", "desc": "Прошёл 3 навыка за один день", "secret": false},
+  {"id": "perfectionist", "icon": "💯", "name": "Перфекционист", "desc": "Набрал 100% в любом навыке", "secret": false},
+  {"id": "explorer", "icon": "🗺️", "name": "Первооткрыватель", "desc": "Открыл все 4 района", "secret": false},
+  {"id": "sniper", "icon": "🎯", "name": "Снайпер", "desc": "Ответил идеально на блок 1 трижды", "secret": true},
+  {"id": "finisher", "icon": "🏁", "name": "Финишёр", "desc": "Прошёл хотя бы 1 навык полностью", "secret": false},
+  {"id": "master", "icon": "👑", "name": "Мастер", "desc": "Прошёл все 22 навыка", "secret": false},
+  {"id": "curious", "icon": "🔍", "name": "Любопытный", "desc": "Зашёл в словарь", "secret": false},
+  {"id": "storyteller", "icon": "📖", "name": "Рассказчик", "desc": "Прочитал все 4 истории", "secret": false},
+  {"id": "situationist", "icon": "🎲", "name": "Ситуационист", "desc": "Сыграл в генератор ситуаций 5 раз", "secret": false}
+]

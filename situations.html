@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Генератор ситуаций 🎲 — SoftSkillGrad</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .sit-page { max-width: 640px; margin: 0 auto; padding: 20px; }
+    .back-link { display: inline-block; margin-bottom: 20px; color: var(--sage); text-decoration: none; font-weight: 600; }
+    .back-link:hover { text-decoration: underline; }
+    .gen-btn { display: block; margin: 0 auto 28px; background: linear-gradient(135deg, var(--sage), var(--sky)); color: white; border: none; border-radius: 16px; padding: 16px 40px; font-size: 18px; font-weight: 800; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 16px rgba(122,184,147,0.4); }
+    .gen-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(122,184,147,0.5); }
+    .sit-card { background: white; border-radius: 16px; padding: 22px; box-shadow: 0 4px 16px rgba(0,0,0,0.09); margin-bottom: 20px; display: none; }
+    .sit-card.visible { display: block; }
+    .sit-tags { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+    .sit-tag { font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px; }
+    .sit-tag.cat { background: #f0f4ff; color: #555; }
+    .sit-tag.skill { background: #e8f8f0; color: var(--sage); }
+    .sit-text { font-size: 17px; line-height: 1.6; color: #333; margin-bottom: 20px; }
+    .choices { display: flex; flex-direction: column; gap: 10px; }
+    .choice-btn { background: var(--cream); border: 2px solid #eee; border-radius: 10px; padding: 12px 16px; font-size: 14px; cursor: pointer; text-align: left; transition: background 0.2s, border-color 0.2s; }
+    .choice-btn:hover { background: #fff3e0; border-color: var(--peach); }
+    .choice-btn:disabled { cursor: default; }
+    .choice-result { border-radius: 10px; padding: 14px 16px; margin-top: 12px; font-size: 14px; line-height: 1.5; }
+    .choice-result.good { background: #f0fdf4; border: 2px solid var(--sage); }
+    .choice-result.bad { background: #fff8e1; border: 2px solid #ffc107; }
+    .more-btn { display: block; margin: 16px auto 0; background: var(--peach); color: white; border: none; border-radius: 12px; padding: 12px 28px; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
+    .more-btn:hover { opacity: 0.9; }
+    .counter { text-align: center; color: #aaa; font-size: 13px; margin-top: 8px; }
+    .cat-icons { school: '🏫', friends: '👥', family: '👨‍👩‍👧' }
+  </style>
+</head>
+<body>
+  <div class="sit-page">
+    <a href="index.html" class="back-link">← На главную</a>
+    <h1>Генератор ситуаций 🎲</h1>
+    <p style="color:#888;margin-bottom:24px;text-align:center">Что бы ты сделал?</p>
+    <button class="gen-btn" id="genBtn">🎲 Новая ситуация</button>
+    <div class="sit-card" id="sitCard">
+      <div class="sit-tags" id="sitTags"></div>
+      <div class="sit-text" id="sitText"></div>
+      <div class="choices" id="sitChoices"></div>
+      <button class="more-btn" id="moreBtn" style="display:none">Ещё ситуация 🎲</button>
+    </div>
+    <div class="counter" id="counter"></div>
+  </div>
+
+  <script>
+    var allSits = [];
+    var recentIds = [];
+    var sitCount = 0;
+    try { sitCount = parseInt(localStorage.getItem('ssg_situations_count') || '0'); } catch(e){}
+
+    var CAT_ICONS = {school: '🏫', friends: '👥', family: '👨‍👩‍👧'};
+
+    function getRandom() {
+      var available = allSits.filter(function(s){ return recentIds.indexOf(s.id) === -1; });
+      if (!available.length) { recentIds = []; available = allSits; }
+      return available[Math.floor(Math.random() * available.length)];
+    }
+
+    function showSit(sit) {
+      recentIds.push(sit.id);
+      if (recentIds.length > 5) recentIds.shift();
+
+      // Increment counter
+      sitCount++;
+      localStorage.setItem('ssg_situations_count', sitCount);
+      document.getElementById('counter').textContent = 'Сыграно: ' + sitCount;
+
+      if (sitCount >= 5 && window.SSG) window.SSG.unlockBadge('situationist');
+
+      var tags = document.getElementById('sitTags');
+      tags.innerHTML = '<span class="sit-tag cat">' + (CAT_ICONS[sit.category] || '📋') + ' ' + sit.category + '</span>' +
+        '<span class="sit-tag skill">' + sit.skill + '</span>';
+
+      document.getElementById('sitText').textContent = sit.situation;
+
+      var choicesDiv = document.getElementById('sitChoices');
+      choicesDiv.innerHTML = '';
+      document.getElementById('moreBtn').style.display = 'none';
+
+      sit.choices.forEach(function(c) {
+        var btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.textContent = c.text;
+        btn.addEventListener('click', function() {
+          choicesDiv.querySelectorAll('button').forEach(function(b){ b.disabled = true; });
+          btn.style.background = c.score > 0 ? '#e8f8f0' : '#fff8e1';
+          btn.style.borderColor = c.score > 0 ? var(--sage) : '#ffc107';
+          // inline fix for template literal
+          btn.style.borderColor = c.score > 0 ? '#7ab893' : '#ffc107';
+          var res = document.createElement('div');
+          res.className = 'choice-result ' + (c.score > 0 ? 'good' : 'bad');
+          res.textContent = (c.score > 0 ? '✅ ' : '💡 ') + c.result;
+          choicesDiv.appendChild(res);
+          document.getElementById('moreBtn').style.display = 'block';
+        });
+        choicesDiv.appendChild(btn);
+      });
+
+      document.getElementById('sitCard').classList.add('visible');
+    }
+
+    document.getElementById('genBtn').addEventListener('click', function() {
+      if (!allSits.length) return;
+      showSit(getRandom());
+    });
+
+    document.getElementById('moreBtn').addEventListener('click', function() {
+      if (!allSits.length) return;
+      showSit(getRandom());
+    });
+
+    fetch('data/situations.json').then(function(r){ return r.json(); }).then(function(data) {
+      allSits = data;
+      document.getElementById('counter').textContent = sitCount > 0 ? 'Сыграно: ' + sitCount : '';
+    });
+  </script>
+  <script src="achievements.js"></script>
+</body>
+</html>

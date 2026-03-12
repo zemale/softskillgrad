@@ -388,7 +388,8 @@ function showComplete(){
 
 function toggleSection(id){
   const hdr=document.querySelector(`#${id} .section-hdr`);
-  const body=document.getElementById(`body${id.slice(-1)}`);
+  const suffix=id.replace('sec','');
+  const body=document.getElementById(`body${suffix}`);
   const open=body.classList.contains('open');
   hdr.classList.toggle('open',!open);
   body.classList.toggle('open',!open);

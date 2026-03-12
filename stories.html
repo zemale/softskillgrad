@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Истории 📖 — SoftSkillGrad</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .stories-page { max-width: 700px; margin: 0 auto; padding: 20px; }
+    .back-link { display: inline-block; margin-bottom: 20px; color: var(--sage); text-decoration: none; font-weight: 600; }
+    .back-link:hover { text-decoration: underline; }
+    .story-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 500px) { .story-cards { grid-template-columns: 1fr; } }
+    .story-card { border-radius: 14px; padding: 20px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border: 2px solid transparent; }
+    .story-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+    .story-card.read { border-color: var(--sage); }
+    .story-char { font-size: 28px; margin-bottom: 8px; }
+    .story-title { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+    .story-read-badge { font-size: 11px; background: var(--sage); color: white; padding: 2px 8px; border-radius: 20px; display: inline-block; margin-top: 6px; }
+
+    /* Reader modal */
+    .reader-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; padding: 16px; }
+    .reader-overlay.open { display: flex; }
+    .reader-modal { background: white; border-radius: 20px; max-width: 560px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 28px 24px; position: relative; }
+    .reader-close { position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 22px; cursor: pointer; color: #888; }
+    .reader-header { margin-bottom: 20px; }
+    .reader-char { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .reader-title { font-size: 20px; font-weight: 800; }
+    .scene-text { font-size: 16px; line-height: 1.6; margin-bottom: 20px; color: #333; }
+    .choices { display: flex; flex-direction: column; gap: 10px; }
+    .choice-btn { background: var(--cream); border: 2px solid #eee; border-radius: 10px; padding: 12px 16px; font-size: 14px; cursor: pointer; text-align: left; transition: background 0.2s, border-color 0.2s; }
+    .choice-btn:hover { background: #fff3e0; border-color: var(--peach); }
+    .choice-btn:disabled { cursor: default; }
+    .choice-result { background: #f0fdf4; border: 2px solid var(--sage); border-radius: 10px; padding: 14px 16px; margin-top: 12px; font-size: 14px; line-height: 1.5; }
+    .next-btn { display: block; margin: 20px auto 0; background: var(--sage); color: white; border: none; border-radius: 12px; padding: 12px 32px; font-size: 16px; font-weight: 700; cursor: pointer; }
+    .next-btn:hover { opacity: 0.9; }
+    .story-result { text-align: center; padding: 16px 0; }
+    .story-result .result-score { font-size: 48px; margin-bottom: 8px; }
+    .story-result .result-text { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .story-result .result-sub { font-size: 14px; color: #666; }
+    .progress-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 20px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #eee; }
+    .dot.active { background: var(--sage); }
+    .dot.done { background: var(--peach); }
+  </style>
+</head>
+<body>
+  <div class="stories-page">
+    <a href="index.html" class="back-link">← На главную</a>
+    <h1>Истории 📖</h1>
+    <p style="color:#888;margin-bottom:24px">Читай — выбирай — развивайся</p>
+    <div class="story-cards" id="storyCards">Загрузка...</div>
+  </div>
+
+  <div class="reader-overlay" id="readerOverlay">
+    <div class="reader-modal" id="readerModal">
+      <button class="reader-close" id="readerClose">✕</button>
+      <div class="reader-header">
+        <div class="reader-char" id="readerChar"></div>
+        <div class="reader-title" id="readerTitle"></div>
+      </div>
+      <div class="progress-dots" id="progressDots"></div>
+      <div id="readerContent"></div>
+    </div>
+  </div>
+
+  <script>
+    var storiesData = [];
+    var currentStory = null;
+    var currentScene = 0;
+    var totalScore = 0;
+
+    var readStories = [];
+    try { readStories = JSON.parse(localStorage.getItem('ssg_stories_read') || '[]'); } catch(e){}
+
+    function renderCards() {
+      var grid = document.getElementById('storyCards');
+      grid.innerHTML = '';
+      storiesData.forEach(function(s) {
+        var isRead = readStories.indexOf(s.id) !== -1;
+        var card = document.createElement('div');
+        card.className = 'story-card' + (isRead ? ' read' : '');
+        card.style.background = s.color + '22';
+        card.innerHTML = '<div class="story-char" style="color:' + s.color + '">' + s.character + '</div>' +
+          '<div class="story-title">' + s.title + '</div>' +
+          (isRead ? '<div class="story-read-badge">✓ Прочитано</div>' : '');
+        card.addEventListener('click', function(){ openStory(s); });
+        grid.appendChild(card);
+      });
+    }
+
+    function openStory(story) {
+      currentStory = story;
+      currentScene = 0;
+      totalScore = 0;
+      document.getElementById('readerChar').textContent = story.character;
+      document.getElementById('readerChar').style.color = story.color;
+      document.getElementById('readerTitle').textContent = story.title;
+      document.getElementById('readerOverlay').classList.add('open');
+      renderScene();
+    }
+
+    function renderScene() {
+      var scene = currentStory.scenes[currentScene];
+      // Progress dots
+      var dots = document.getElementById('progressDots');
+      dots.innerHTML = '';
+      currentStory.scenes.forEach(function(_, i) {
+        var d = document.createElement('div');
+        d.className = 'dot' + (i < currentScene ? ' done' : i === currentScene ? ' active' : '');
+        dots.appendChild(d);
+      });
+
+      var content = document.getElementById('readerContent');
+      content.innerHTML = '<div class="scene-text">' + scene.text + '</div>';
+
+      if (!scene.choices) {
+        var btn = document.createElement('button');
+        btn.className = 'next-btn';
+        btn.textContent = 'Далее →';
+        btn.addEventListener('click', nextScene);
+        content.appendChild(btn);
+      } else {
+        var choicesDiv = document.createElement('div');
+        choicesDiv.className = 'choices';
+        scene.choices.forEach(function(c, ci) {
+          var btn = document.createElement('button');
+          btn.className = 'choice-btn';
+          btn.textContent = c.text;
+          btn.addEventListener('click', function() {
+            // Disable all buttons
+            choicesDiv.querySelectorAll('button').forEach(function(b){ b.disabled = true; });
+            btn.style.background = '#fff3e0';
+            btn.style.borderColor = '#f4956a';
+            totalScore += c.score;
+            var res = document.createElement('div');
+            res.className = 'choice-result';
+            res.textContent = c.result;
+            choicesDiv.appendChild(res);
+            var nb = document.createElement('button');
+            nb.className = 'next-btn';
+            nb.textContent = currentScene < currentStory.scenes.length - 1 ? 'Далее →' : 'Итог 🏁';
+            nb.addEventListener('click', nextScene);
+            content.appendChild(nb);
+          });
+          choicesDiv.appendChild(btn);
+        });
+        content.appendChild(choicesDiv);
+      }
+    }
+
+    function nextScene() {
+      currentScene++;
+      if (currentScene >= currentStory.scenes.length) {
+        showResult();
+      } else {
+        renderScene();
+      }
+    }
+
+    function showResult() {
+      // Mark as read
+      if (readStories.indexOf(currentStory.id) === -1) {
+        readStories.push(currentStory.id);
+        localStorage.setItem('ssg_stories_read', JSON.stringify(readStories));
+        renderCards();
+        // Check if all 4 read
+        if (readStories.length >= 4 && window.SSG) window.SSG.unlockBadge('storyteller');
+      }
+
+      var maxScore = currentStory.scenes.filter(function(s){ return s.choices; })
+        .reduce(function(acc, s){ return acc + Math.max.apply(null, s.choices.map(function(c){ return c.score; })); }, 0);
+
+      var emoji, text;
+      if (totalScore <= 2) { emoji = '💡'; text = 'Попробуй снова — есть что улучшить'; }
+      else if (totalScore <= 5) { emoji = '😊'; text = 'Хорошо! Ты на верном пути'; }
+      else { emoji = '🌟'; text = 'Отлично! Ты настоящий мастер'; }
+
+      var content = document.getElementById('readerContent');
+      var dots = document.getElementById('progressDots');
+      dots.innerHTML = '';
+      currentStory.scenes.forEach(function() {
+        var d = document.createElement('div');
+        d.className = 'dot done';
+        dots.appendChild(d);
+      });
+
+      content.innerHTML = '<div class="story-result">' +
+        '<div class="result-score">' + emoji + '</div>' +
+        '<div class="result-text">' + text + '</div>' +
+        '<div class="result-sub">Очки: ' + totalScore + ' / ' + maxScore + '</div>' +
+        '</div>' +
+        '<button class="next-btn" onclick="document.getElementById(\'readerOverlay\').classList.remove(\'open\')">Закрыть</button>';
+    }
+
+    document.getElementById('readerClose').addEventListener('click', function() {
+      document.getElementById('readerOverlay').classList.remove('open');
+    });
+    document.getElementById('readerOverlay').addEventListener('click', function(e) {
+      if (e.target === this) this.classList.remove('open');
+    });
+
+    fetch('data/stories.json').then(function(r){ return r.json(); }).then(function(data) {
+      storiesData = data;
+      renderCards();
+    });
+  </script>
+  <script src="achievements.js"></script>
+</body>
+</html>

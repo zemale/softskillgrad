@@ -183,3 +183,35 @@ header {
   animation: confettiFall linear forwards; pointer-events: none; z-index: 999;
 }
 @keyframes confettiFall { to { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+
+/* ===== BADGE POPUP ===== */
+.badge-popup {
+  position: fixed; bottom: 20px; left: 50%;
+  transform: translateX(-50%) translateY(150px);
+  background: white; border-radius: 16px; padding: 16px 24px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  display: flex; align-items: center; gap: 12px;
+  z-index: 9999; transition: transform 0.4s ease;
+}
+.badge-popup.show { transform: translateX(-50%) translateY(0); }
+.badge-popup .badge-icon { font-size: 32px; }
+.badge-popup .badge-title { font-weight: 700; font-size: 15px; }
+.badge-popup .badge-desc { font-size: 13px; color: #666; }
+
+/* ===== EXTRA FEATURES SECTION ===== */
+.extra-features { margin-top: 40px; padding: 0 0 20px; }
+.extra-features h2 { margin-bottom: 16px; }
+.features-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+@media (max-width: 700px) { .features-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 400px) { .features-grid { grid-template-columns: 1fr; } }
+.feature-card {
+  background: white; border-radius: 12px; padding: 18px 14px;
+  text-align: center; text-decoration: none; color: inherit;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: block;
+}
+.feature-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(122,184,147,0.3); }
+.feature-icon { font-size: 36px; margin-bottom: 8px; }
+.feature-name { font-weight: 800; font-size: 15px; margin-bottom: 4px; color: var(--sage); }
+.feature-desc { font-size: 12px; color: #888; }

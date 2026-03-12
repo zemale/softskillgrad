@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Словарь 📚 — SoftSkillGrad</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .glossary-page { max-width: 760px; margin: 0 auto; padding: 20px; }
+    .back-link { display: inline-block; margin-bottom: 20px; color: var(--sage); text-decoration: none; font-weight: 600; }
+    .back-link:hover { text-decoration: underline; }
+    .search-bar { width: 100%; box-sizing: border-box; padding: 12px 18px; border: 2px solid #eee; border-radius: 12px; font-size: 16px; margin-bottom: 16px; outline: none; transition: border-color 0.2s; }
+    .search-bar:focus { border-color: var(--sage); }
+    .filter-btns { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+    .filter-btn { padding: 6px 16px; border-radius: 20px; border: 2px solid #eee; background: white; font-size: 14px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+    .filter-btn.active { color: white; border-color: transparent; }
+    .terms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 550px) { .terms-grid { grid-template-columns: 1fr; } }
+    .term-card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); }
+    .term-name { font-weight: 800; font-size: 15px; margin-bottom: 6px; }
+    .term-def { font-size: 14px; color: #555; line-height: 1.5; margin-bottom: 10px; }
+    .term-tag { font-size: 11px; padding: 2px 10px; border-radius: 20px; color: white; display: inline-block; font-weight: 600; }
+    .no-results { text-align: center; color: #aaa; padding: 40px; grid-column: 1/-1; }
+  </style>
+</head>
+<body>
+  <div class="glossary-page">
+    <a href="index.html" class="back-link">← На главную</a>
+    <h1>Словарь soft skills 📚</h1>
+    <input type="text" class="search-bar" id="searchInput" placeholder="🔍 Поиск термина...">
+    <div class="filter-btns" id="filterBtns">
+      <button class="filter-btn active" data-char="all" style="background:#7ab893;color:white;border-color:#7ab893">Все</button>
+      <button class="filter-btn" data-char="Настя" style="--c:#e17055">Настя</button>
+      <button class="filter-btn" data-char="Даня" style="--c:#0984e3">Даня</button>
+      <button class="filter-btn" data-char="Фил" style="--c:#a29bfe">Фил</button>
+      <button class="filter-btn" data-char="Даша" style="--c:#00b894">Даша</button>
+    </div>
+    <div class="terms-grid" id="termsGrid">Загрузка...</div>
+  </div>
+
+  <script>
+    var COLORS = {Настя: '#e17055', Даня: '#0984e3', Фил: '#a29bfe', Даша: '#00b894'};
+    var allTerms = [];
+    var activeChar = 'all';
+    var searchVal = '';
+
+    // Style filter buttons
+    document.querySelectorAll('.filter-btn[data-char]').forEach(function(btn) {
+      var c = btn.dataset.char;
+      if (c !== 'all') btn.style.cssText = '';
+      btn.addEventListener('click', function() {
+        activeChar = c;
+        document.querySelectorAll('.filter-btn').forEach(function(b) {
+          b.classList.remove('active');
+          b.style.background = '';
+          b.style.color = '';
+          b.style.borderColor = '';
+        });
+        btn.classList.add('active');
+        if (c === 'all') {
+          btn.style.background = '#7ab893'; btn.style.color = 'white'; btn.style.borderColor = '#7ab893';
+        } else {
+          var col = COLORS[c];
+          btn.style.background = col; btn.style.color = 'white'; btn.style.borderColor = col;
+        }
+        renderTerms();
+      });
+    });
+
+    document.getElementById('searchInput').addEventListener('input', function() {
+      searchVal = this.value.toLowerCase();
+      renderTerms();
+    });
+
+    function renderTerms() {
+      var grid = document.getElementById('termsGrid');
+      var filtered = allTerms.filter(function(t) {
+        var matchChar = activeChar === 'all' || t.character === activeChar;
+        var matchSearch = !searchVal || t.term.toLowerCase().includes(searchVal) || t.def.toLowerCase().includes(searchVal);
+        return matchChar && matchSearch;
+      });
+      if (!filtered.length) {
+        grid.innerHTML = '<div class="no-results">Ничего не найдено 🔍</div>';
+        return;
+      }
+      grid.innerHTML = '';
+      filtered.forEach(function(t) {
+        var color = COLORS[t.character] || '#aaa';
+        var card = document.createElement('div');
+        card.className = 'term-card';
+        card.innerHTML = '<div class="term-name">' + t.term + '</div>' +
+          '<div class="term-def">' + t.def + '</div>' +
+          '<span class="term-tag" style="background:' + color + '">' + t.character + '</span>';
+        grid.appendChild(card);
+      });
+    }
+
+    fetch('data/glossary.json').then(function(r){ return r.json(); }).then(function(data) {
+      allTerms = data;
+      renderTerms();
+    });
+
+    // Unlock curious badge on first visit
+    if (!localStorage.getItem('ssg_glossary_visited')) {
+      localStorage.setItem('ssg_glossary_visited', '1');
+      document.addEventListener('DOMContentLoaded', function() {
+        if (window.SSG) window.SSG.unlockBadge('curious');
+      });
+    }
+  </script>
+  <script src="achievements.js"></script>
+</body>
+</html>

@@ -116,9 +116,11 @@
     </div>
     <div class="pbar-wrap"><div class="pbar-fill" id="pcBar" style="width:0%"></div></div>
     <div class="blocks-dots">
+      <div class="bdot" id="dotT"></div>
       <div class="bdot" id="dot1"></div>
       <div class="bdot" id="dot2"></div>
       <div class="bdot" id="dot3"></div>
+      <div class="bdot" id="dotST"></div>
     </div>
   </div>
 
@@ -126,6 +128,20 @@
     <span class="cb-icon">🎉</span>
     <h3>Навык прокачан!</h3>
     <p>Отлично! Продолжай в том же духе.</p>
+  </div>
+
+  <!-- БЛОК 0: ТЕОРИЯ -->
+  <div class="section" id="secT">
+    <div class="section-hdr" onclick="toggleSection('secT')">
+      <span class="sh-emoji">📖</span>
+      <div class="sh-info">
+        <div class="sh-title">Теория</div>
+        <div class="sh-sub">Что это такое и как развить</div>
+      </div>
+      <span class="sh-status st-open" id="statusT">Читать</span>
+      <span class="sh-arrow">›</span>
+    </div>
+    <div class="section-body" id="bodyT"></div>
   </div>
 
   <div class="section" id="sec1">
@@ -167,12 +183,27 @@
     <div class="section-body" id="body3"></div>
   </div>
 
-  <div class="section" id="sec4" style="animation-delay:.3s;display:none">
+  <!-- БЛОК 4: ТЕСТ НАВЫКА -->
+  <div class="section" id="secST" style="animation-delay:.3s">
+    <div class="section-hdr" onclick="toggleSection('secST')">
+      <span class="sh-emoji">🧪</span>
+      <div class="sh-info">
+        <div class="sh-title">Тест навыка</div>
+        <div class="sh-sub">10 вопросов · развёрнутый результат</div>
+      </div>
+      <span class="sh-status st-open" id="statusST">Пройти</span>
+      <span class="sh-arrow">›</span>
+    </div>
+    <div class="section-body" id="bodyST"></div>
+  </div>
+
+  <!-- БЛОК 5: ИНТЕРАКТИВ -->
+  <div class="section" id="sec4" style="animation-delay:.4s">
     <div class="section-hdr" onclick="toggleSection('sec4')">
       <span class="sh-emoji">✨</span>
       <div class="sh-info">
-        <div class="sh-title">Блок 4 — Интерактив</div>
-        <div class="sh-sub">Симуляторы, игры и вызовы</div>
+        <div class="sh-title">Интерактив</div>
+        <div class="sh-sub">5 симуляторов и игр</div>
       </div>
       <span class="sh-status st-open" style="background:var(--lav-light);color:#5a4090">Играть</span>
       <span class="sh-arrow">›</span>
@@ -217,14 +248,100 @@ async function init(){
 
   document.getElementById('pcBar').style.background=accent;
   document.getElementById('pcPct').style.color=accent;
-  ['dot1','dot2','dot3'].forEach(id=>document.getElementById(id).style.setProperty('--dot-color',accent));
+  ['dotT','dot1','dot2','dot3','dotST'].forEach(id=>document.getElementById(id).style.setProperty('--dot-color',accent));
 
   updateProgress();
+  initTheory();
   initBlock1();
   initBlock2();
   initBlock3();
+  initSkillTest();
   initBlock4();
   if(getProgress()>=100) showComplete();
+}
+
+/* THEORY */
+function initTheory(){
+  const body = document.getElementById('bodyT');
+  const ex = exData[skillId]||exData['verbal'];
+  const th = ex?.theory;
+  if(!th){body.innerHTML='<p style="color:var(--text3);padding:8px">Скоро 🔧</p>';return;}
+  const done = !!localStorage.getItem(`ssg_theory_${skillId}`);
+  let html = charBubble(th.intro);
+  html += `<div style="margin:14px 0"><strong style="font-size:.9rem">Как развить:</strong><ul style="margin:8px 0 0 18px;font-size:.88rem;line-height:1.8;color:var(--text)">`;
+  th.tips.forEach(t => { html += `<li>${t}</li>`; });
+  html += `</ul></div>`;
+  html += `<div style="background:var(--yellow-light);border-radius:12px;padding:12px 14px;font-size:.85rem;line-height:1.5;margin-bottom:14px"><span style="font-weight:800">🤔 Миф:</span> ${th.myth}</div>`;
+  if(done){
+    html += `<div style="text-align:center;color:var(--sage);font-weight:800;font-size:.9rem">✅ Прочитано</div>`;
+    document.getElementById('statusT').textContent='✅ Готово';
+    document.getElementById('statusT').className='sh-status st-done';
+  } else {
+    html += `<button class="btn-primary" onclick="completeTheory()" style="font-size:.9rem;padding:10px 20px">Понятно! +5%</button>`;
+  }
+  body.innerHTML = html;
+}
+function completeTheory(){
+  localStorage.setItem(`ssg_theory_${skillId}`,'1');
+  setProgress(getProgress()+5);
+  initTheory();
+  document.getElementById('bodyT').classList.add('open');
+}
+
+/* SKILL TEST */
+function initSkillTest(){
+  const body = document.getElementById('bodyST');
+  const ex = exData[skillId]||exData['verbal'];
+  const st = ex?.skill_test;
+  if(!st){body.innerHTML='<p style="color:var(--text3);padding:8px">Скоро 🔧</p>';return;}
+  const saved = localStorage.getItem(`ssg_skilltest_${skillId}`);
+  if(saved !== null){
+    showSkillTestResult(+saved, st, body);
+    document.getElementById('statusST').textContent='✅ Пройден';
+    document.getElementById('statusST').className='sh-status st-done';
+    return;
+  }
+  renderSkillTestQuestion(0, {}, st, body);
+}
+function renderSkillTestQuestion(qi, answers, st, body){
+  const q = st.questions[qi];
+  let html = `<div style="margin-bottom:6px;font-size:.78rem;color:var(--text3);font-weight:800">Вопрос ${qi+1} из ${st.questions.length}</div>`;
+  html += `<div class="ex-text" style="margin-bottom:12px;font-size:.93rem">${q.q}</div>`;
+  html += `<div style="display:flex;flex-direction:column;gap:8px">`;
+  q.options.forEach((o,oi)=>{
+    html += `<button class="result-btn" onclick="answerST(${qi},${oi})">${o.text}</button>`;
+  });
+  html += `</div>`;
+  body.innerHTML = html;
+  body._stAnswers = answers;
+  body._stData = st;
+}
+function answerST(qi, oi){
+  const body = document.getElementById('bodyST');
+  const st = body._stData;
+  const answers = body._stAnswers;
+  answers[qi] = st.questions[qi].options[oi].score;
+  const next = qi + 1;
+  if(next < st.questions.length){
+    renderSkillTestQuestion(next, answers, st, body);
+  } else {
+    const total = Object.values(answers).reduce((a,b)=>a+b,0);
+    localStorage.setItem(`ssg_skilltest_${skillId}`, total);
+    setProgress(getProgress()+15);
+    showSkillTestResult(total, st, body);
+    document.getElementById('statusST').textContent='✅ Пройден';
+    document.getElementById('statusST').className='sh-status st-done';
+    if(window.SSG) window.SSG.checkAchievements();
+  }
+}
+function showSkillTestResult(score, st, body){
+  const level = st.levels.find(l => score >= l.min && score <= l.max) || st.levels[0];
+  let html = charBubble(`Твой результат: <strong>${level.title}</strong> (${score} из 20)`);
+  html += `<div style="background:var(--sage-light);border-radius:14px;padding:14px;margin:12px 0">`;
+  html += `<div style="font-size:.88rem;line-height:1.6;color:var(--text)">${level.analysis}</div>`;
+  html += `<div style="margin-top:10px;font-size:.85rem;color:var(--sage);font-weight:700">💡 ${level.advice}</div>`;
+  html += `</div>`;
+  body.innerHTML = html;
 }
 
 function getProgress(){ return +(localStorage.getItem(`ssg_skill_${skillId}`)||0); }
@@ -238,12 +355,16 @@ function updateProgress(){
   const pct=getProgress();
   document.getElementById('pcBar').style.width=pct+'%';
   document.getElementById('pcPct').textContent=pct+'%';
+  const thDone=!!localStorage.getItem(`ssg_theory_${skillId}`);
   const b1done=!!localStorage.getItem(`ssg_b1_${skillId}`);
   const b2idx=+(localStorage.getItem(`ssg_b2_${skillId}`)||0);
   const b3done=JSON.parse(localStorage.getItem(`ssg_b3_${skillId}`)||'[]');
+  const stDone=localStorage.getItem(`ssg_skilltest_${skillId}`)!==null;
+  document.getElementById('dotT').style.background=thDone?accent:'var(--bg2)';
   document.getElementById('dot1').style.background=b1done?accent:'var(--bg2)';
   document.getElementById('dot2').style.background=b2idx>=10?accent:'var(--bg2)';
   document.getElementById('dot3').style.background=b3done.length>=20?accent:'var(--bg2)';
+  document.getElementById('dotST').style.background=stDone?accent:'var(--bg2)';
   updateStatuses(b1done,b2idx,b3done.length);
 }
 function updateStatuses(b1,b2,b3){
@@ -401,56 +522,28 @@ function selB3(id){
   sel.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
-/* BLOCK 4 — Interactive */
-const INTERACTIVE_MAP = {
-  // Симулятор диалога
-  verbal:'dialog', emotional_intelligence:'dialog', public_speaking:'dialog',
-  // Сортировка
-  conflict_resolution:'sort', time_management:'sort', team_management:'sort', self_organization:'sort',
-  // Таймер-вызов
-  divergent:'timer', lateral:'timer', team_building:'timer', strategic_thinking:'timer',
-  // Мини-кейс
-  empathy:'case', delegation:'case', mentoring:'case',
-  // Угадай эмоцию
-  empathy_emotion:'emotion',
-};
-// Extra emotion skills
-const EMOTION_SKILLS=['empathy','emotional_intelligence','critical_thinking'];
-
-const EX_LABELS = {
-  dialog:  { icon:'💬', name:'Симулятор диалога',     desc:'Разыграй настоящий разговор и узнай как ты общаешься' },
-  sort:    { icon:'🃏', name:'Расставь по порядку',   desc:'Перетащи карточки в правильной последовательности' },
-  timer:   { icon:'⏱️', name:'Таймер-вызов',           desc:'Генерируй идеи быстро — на скорость думать полезно!' },
-  case:    { icon:'🗂️', name:'Мини-кейс',              desc:'Реальная ситуация — ты принимаешь решения' },
-  emotion: { icon:'🎭', name:'Угадай эмоцию',          desc:'Определи что чувствует человек в разных ситуациях' },
-};
-
+/* BLOCK 4 — Interactive (все 5 типов) */
+const EX_LABELS = [
+  { type:'dialog', icon:'💬', name:'Симулятор диалога',   desc:'Разыграй настоящий разговор' },
+  { type:'sort',   icon:'🃏', name:'Расставь по порядку', desc:'Перетащи карточки в правильном порядке' },
+  { type:'timer',  icon:'⏱️', name:'Таймер-вызов',         desc:'Генерируй идеи на скорость' },
+  { type:'case',   icon:'🗂️', name:'Мини-кейс',            desc:'Реальная ситуация — ты решаешь' },
+  { type:'emotion',icon:'🎭', name:'Угадай эмоцию',        desc:'Определи что чувствует человек' },
+];
 function initBlock4(){
-  const types=new Set();
-  if(INTERACTIVE_MAP[skillId]) types.add(INTERACTIVE_MAP[skillId]);
-  if(EMOTION_SKILLS.includes(skillId)) types.add('emotion');
-  // Universal: case и sort для всех
-  if(!types.size){ types.add('case'); types.add('sort'); }
-
-  if(!types.size) return;
-  document.getElementById('sec4').style.display='block';
-
   const body=document.getElementById('body4');
-  let html='';
-  types.forEach(type=>{
-    const meta=EX_LABELS[type];
+  let html=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:4px 0">`;
+  EX_LABELS.forEach(({type,icon,name,desc})=>{
     html+=`<a href="ex-${type}.html?skill=${skillId}&district=${districtId||''}"
-      style="display:flex;align-items:center;gap:14px;background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:10px;text-decoration:none;color:var(--text);box-shadow:0 2px 10px var(--shadow);transition:.2s"
+      style="display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:14px 10px;text-decoration:none;color:var(--text);text-align:center;transition:.2s;box-shadow:0 2px 8px var(--shadow)"
       onmouseenter="this.style.borderColor='var(--sage)';this.style.background='var(--sage-light)'"
       onmouseleave="this.style.borderColor='';this.style.background=''">
-      <span style="font-size:2rem;flex-shrink:0">${meta.icon}</span>
-      <div style="flex:1">
-        <div style="font-size:.95rem;font-weight:900;color:var(--text)">${meta.name}</div>
-        <div style="font-size:.8rem;color:var(--text3);margin-top:3px">${meta.desc}</div>
-      </div>
-      <span style="font-size:1.1rem;color:var(--text3)">→</span>
+      <span style="font-size:1.8rem">${icon}</span>
+      <div style="font-size:.82rem;font-weight:900;color:var(--text)">${name}</div>
+      <div style="font-size:.72rem;color:var(--text3);line-height:1.3">${desc}</div>
     </a>`;
   });
+  html+=`</div>`;
   body.innerHTML=html;
 }
 

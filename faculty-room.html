@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Комната факультета — SoftSkillGrad</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .dean-bubble{display:flex;gap:14px;align-items:flex-start;background:var(--card);border-radius:16px;padding:16px;margin-bottom:16px;border:1.5px solid var(--border)}
+  .dean-avatar{font-size:2.5rem;flex-shrink:0}
+  .dean-info .dean-name{font-weight:900;font-size:1rem}
+  .dean-info .dean-title{font-size:.8rem;color:var(--text3);margin-bottom:6px}
+  .dean-info .dean-bio{font-size:.82rem;color:var(--text2);margin-bottom:6px;line-height:1.5}
+  .dean-quote{font-style:italic;font-size:.9rem;color:var(--text3);margin-top:4px;border-left:3px solid var(--sage);padding-left:10px}
+
+  .faculty-header{border-radius:18px;padding:20px;margin-bottom:16px;display:flex;align-items:center;gap:16px}
+  .fh-icon{font-size:3rem}
+  .fh-name{font-size:1.2rem;font-weight:900;color:#fff}
+  .fh-slogan{font-size:.85rem;color:rgba(255,255,255,.8)}
+
+  .section-title{font-size:1rem;font-weight:900;margin:20px 0 10px;color:var(--text1)}
+
+  .faculty-task-card{display:flex;align-items:flex-start;gap:12px;background:var(--card);border-radius:14px;padding:14px;margin-bottom:8px;border:1.5px solid var(--border);cursor:pointer;transition:.15s}
+  .faculty-task-card.done{opacity:.55;text-decoration:line-through}
+  .task-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.8rem;margin-top:1px}
+  .task-check.checked{background:var(--sage);border-color:var(--sage);color:white}
+
+  .case-card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px}
+  .case-card .case-title{font-weight:900;font-size:.95rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;gap:8px}
+  .case-body{display:none;margin-top:12px}
+  .case-body.open{display:block}
+  .case-story{font-size:.85rem;color:var(--text2);line-height:1.6;margin-bottom:14px;padding:12px;background:var(--hover);border-radius:10px}
+  .case-qblock{margin-bottom:12px}
+  .case-q{font-size:.9rem;font-weight:700;margin-bottom:8px}
+  .case-opt{background:var(--hover);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;cursor:pointer;font-size:.85rem;display:block;width:100%;text-align:left;margin-bottom:6px;transition:.15s}
+  .case-opt:hover{border-color:var(--sage)}
+  .case-opt.correct{border-color:#00b894;background:#e6f9f4;color:#007a5e}
+  .case-opt.wrong{border-color:#e17055;background:#ffeae6;color:#c0392b}
+  .case-result{text-align:center;padding:14px;border-radius:12px;background:var(--hover);margin-top:10px;font-size:.9rem}
+  .case-done-badge{color:var(--sage);font-size:1.1rem}
+
+  .skill-chips{display:flex;flex-wrap:wrap;gap:8px}
+  .skill-chip{background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:8px 14px;font-size:.82rem;text-decoration:none;color:var(--text1);transition:.15s}
+  .skill-chip:hover{border-color:var(--sage);background:var(--hover)}
+
+  .btn-switch{background:var(--border);color:var(--text1);border:none;border-radius:12px;padding:12px 20px;cursor:pointer;font-size:.9rem;font-weight:700;width:100%;margin-top:20px}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="page-header">
+    <a href="index.html" class="back-btn">← На главную</a>
+  </div>
+
+  <div id="app">Загружаем...</div>
+</div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const facultyId = params.get('id') || localStorage.getItem('ssg_faculty');
+
+fetch('data/faculties.json').then(r=>r.json()).then(faculties=>{
+  const f = faculties.find(x=>x.id===facultyId);
+  if(!f){ document.getElementById('app').innerHTML='<p>Факультет не найден. <a href="faculty.html">Выбрать факультет</a></p>'; return; }
+  render(f);
+});
+
+function render(f){
+  const today = new Date().toISOString().slice(0,10);
+  const dailyKey = `ssg_faculty_daily_${today}_${f.id}`;
+  const casesKey = `ssg_faculty_cases_${f.id}`;
+
+  // Pick 3 daily tasks seeded by date
+  const seed = today.replace(/-/g,'');
+  const seedNum = parseInt(seed) % f.daily_tasks.length;
+  const tasks = [];
+  for(let i=0;i<3;i++) tasks.push(f.daily_tasks[(seedNum+i)%f.daily_tasks.length]);
+
+  let doneTasks = JSON.parse(localStorage.getItem(dailyKey)||'[]');
+  let doneCases = JSON.parse(localStorage.getItem(casesKey)||'[]');
+
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <div class="faculty-header" style="background:${f.color}">
+      <div class="fh-icon">${f.icon}</div>
+      <div>
+        <div class="fh-name">${f.name}</div>
+        <div class="fh-slogan">${f.slogan}</div>
+      </div>
+    </div>
+
+    <div class="dean-bubble">
+      <div class="dean-avatar">${f.dean.avatar}</div>
+      <div class="dean-info">
+        <div class="dean-name">${f.dean.name}</div>
+        <div class="dean-title">${f.dean.title}</div>
+        <div class="dean-bio">${f.dean.bio}</div>
+        <div class="dean-quote">«${f.dean.phrase}»</div>
+      </div>
+    </div>
+
+    <div class="section-title">📋 Задания на сегодня</div>
+    <div id="tasksWrap">
+      ${tasks.map((t,i)=>{
+        const done = doneTasks.includes(i);
+        return `<div class="faculty-task-card${done?' done':''}" onclick="toggleTask(${i},'${dailyKey}')">
+          <div class="task-check${done?' checked':''}" id="tcheck_${i}">${done?'✓':''}</div>
+          <div>${t}</div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="section-title">🎯 Кейсы факультета</div>
+    <div id="casesWrap">
+      ${f.cases.map((c,ci)=>{
+        const isDone = doneCases.includes(ci);
+        return `<div class="case-card" id="case_${ci}">
+          <div class="case-title" onclick="toggleCase(${ci})">
+            <span>${c.title}</span>
+            <span id="caseBadge_${ci}">${isDone?'<span class="case-done-badge">✅</span>':'▼'}</span>
+          </div>
+          <div class="case-body" id="caseBody_${ci}">
+            <div class="case-story">${c.story}</div>
+            ${c.questions.map((q,qi)=>`
+              <div class="case-qblock" id="cq_${ci}_${qi}">
+                <div class="case-q">${qi+1}. ${q.q}</div>
+                ${q.options.map((o,oi)=>`
+                  <button class="case-opt" id="co_${ci}_${qi}_${oi}" onclick="answerCase(${ci},${qi},${oi},${o.score},${Math.max(...q.options.map(x=>x.score))},${f.cases[ci].questions.length},'${f.dean.phrase}','${casesKey}')">${o.text}</button>
+                `).join('')}
+              </div>
+            `).join('')}
+            <div id="caseResult_${ci}"></div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="section-title">🧠 Рекомендованные навыки</div>
+    <div class="skill-chips">
+      ${f.skills.map(s=>`<a href="skill.html?id=${s}" class="skill-chip">${s.replace(/_/g,' ')}</a>`).join('')}
+    </div>
+
+    <button class="btn-switch" onclick="switchFaculty()">🔄 Сменить факультет</button>
+  `;
+}
+
+function toggleTask(idx, key){
+  let done = JSON.parse(localStorage.getItem(key)||'[]');
+  const i = done.indexOf(idx);
+  if(i>=0) done.splice(i,1); else done.push(idx);
+  localStorage.setItem(key, JSON.stringify(done));
+  const card = document.querySelectorAll('.faculty-task-card')[idx];
+  const check = document.getElementById(`tcheck_${idx}`);
+  if(done.includes(idx)){
+    card.classList.add('done');
+    check.classList.add('checked');
+    check.textContent='✓';
+  } else {
+    card.classList.remove('done');
+    check.classList.remove('checked');
+    check.textContent='';
+  }
+}
+
+function toggleCase(ci){
+  const body = document.getElementById(`caseBody_${ci}`);
+  body.classList.toggle('open');
+  const badge = document.getElementById(`caseBadge_${ci}`);
+  if(!badge.innerHTML.includes('✅')) badge.textContent = body.classList.contains('open')?'▲':'▼';
+}
+
+const caseAnswers = {};
+
+function answerCase(ci, qi, oi, score, maxScore, totalQ, phrase, casesKey){
+  // disable all opts for this question
+  const q = document.getElementById(`cq_${ci}_${qi}`);
+  q.querySelectorAll('.case-opt').forEach((b,i)=>{
+    b.disabled = true;
+    if(i===oi) b.classList.add(score===maxScore?'correct':'wrong');
+  });
+
+  if(!caseAnswers[ci]) caseAnswers[ci] = {score:0, answered:0};
+  caseAnswers[ci].score += score;
+  caseAnswers[ci].answered++;
+
+  if(caseAnswers[ci].answered === totalQ){
+    const total = totalQ * maxScore;
+    const pct = caseAnswers[ci].score / total;
+    let msg;
+    if(pct >= 0.7) msg = `🎉 Отлично! Ты справился с кейсом.<br><em>«${phrase}»</em>`;
+    else if(pct >= 0.4) msg = `👍 Неплохо! Есть над чем подумать.<br><em>«${phrase}»</em>`;
+    else msg = `💡 Интересный опыт. Попробуй разобраться глубже.<br><em>«${phrase}»</em>`;
+    document.getElementById(`caseResult_${ci}`).innerHTML = `<div class="case-result">${msg}</div>`;
+
+    // mark done
+    let done = JSON.parse(localStorage.getItem(casesKey)||'[]');
+    if(!done.includes(ci)){ done.push(ci); localStorage.setItem(casesKey, JSON.stringify(done)); }
+    document.getElementById(`caseBadge_${ci}`).innerHTML = '<span class="case-done-badge">✅</span>';
+  }
+}
+
+function switchFaculty(){
+  localStorage.removeItem('ssg_faculty');
+  location.href = 'faculty.html';
+}
+</script>
+</body>
+</html>

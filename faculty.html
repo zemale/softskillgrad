@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Факультеты — SoftSkillGrad</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .faculty-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(min-width:600px){.faculty-grid{grid-template-columns:repeat(3,1fr)}}
+  .faculty-card{border:2px solid var(--border);border-radius:18px;padding:20px;cursor:pointer;transition:.2s;background:var(--card);text-align:center}
+  .faculty-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px var(--shadow)}
+  .faculty-card.selected{border-width:3px}
+  .faculty-card .fc-icon{font-size:2.5rem;margin-bottom:8px}
+  .faculty-card .fc-name{font-weight:900;font-size:.95rem;margin-bottom:4px}
+  .faculty-card .fc-slogan{font-size:.75rem;color:var(--text3);margin-bottom:6px}
+  .faculty-card .fc-for{font-size:.72rem;color:var(--text3)}
+
+  /* Quiz */
+  .quiz-wrap{display:none}
+  .quiz-q{font-size:1.05rem;font-weight:700;margin-bottom:18px;line-height:1.4}
+  .quiz-opts{display:flex;flex-direction:column;gap:10px}
+  .quiz-opt{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;font-size:.9rem;text-align:left;transition:.15s}
+  .quiz-opt:hover{border-color:var(--sage);background:var(--hover)}
+  .quiz-opt.chosen{border-color:var(--sage);background:var(--sage);color:#fff}
+  .quiz-progress{height:6px;background:var(--border);border-radius:3px;margin-bottom:20px;overflow:hidden}
+  .quiz-progress-inner{height:100%;background:var(--sage);border-radius:3px;transition:.3s}
+  .quiz-counter{font-size:.8rem;color:var(--text3);margin-bottom:8px}
+
+  /* Result */
+  .result-wrap{display:none;text-align:center;padding:20px 0}
+  .result-icon{font-size:3rem;margin-bottom:12px}
+  .result-title{font-size:1.3rem;font-weight:900;margin-bottom:8px}
+  .result-sub{font-size:.9rem;color:var(--text3);margin-bottom:24px;line-height:1.5}
+  .btn-try{background:var(--border);color:var(--text1);border:none;border-radius:12px;padding:12px 24px;cursor:pointer;font-size:.9rem;font-weight:700}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="page-header">
+    <a href="index.html" class="back-btn">← На главную</a>
+    <h1 class="page-title" id="pageTitle">Выбери свой факультет</h1>
+    <p class="page-subtitle" id="pageSubtitle">Пройди вступительный тест и узнай, где твоё место</p>
+  </div>
+
+  <!-- Step 1: Faculty selection -->
+  <div id="stepSelect">
+    <div class="faculty-grid" id="facultyGrid"></div>
+  </div>
+
+  <!-- Step 2: Quiz -->
+  <div class="quiz-wrap" id="stepQuiz">
+    <div class="quiz-counter" id="quizCounter"></div>
+    <div class="quiz-progress"><div class="quiz-progress-inner" id="quizProgress"></div></div>
+    <div class="quiz-q" id="quizQ"></div>
+    <div class="quiz-opts" id="quizOpts"></div>
+  </div>
+
+  <!-- Step 3: Result -->
+  <div class="result-wrap" id="stepResult">
+    <div class="result-icon" id="resultIcon"></div>
+    <div class="result-title" id="resultTitle"></div>
+    <div class="result-sub" id="resultSub"></div>
+    <div id="resultBtns"></div>
+  </div>
+</div>
+
+<script>
+let faculties = [];
+let currentFaculty = null;
+let currentQ = 0;
+let totalScore = 0;
+let answers = [];
+
+fetch('data/faculties.json').then(r=>r.json()).then(data=>{
+  faculties = data;
+  renderGrid();
+});
+
+function renderGrid(){
+  const grid = document.getElementById('facultyGrid');
+  grid.innerHTML = faculties.map(f=>`
+    <div class="faculty-card" onclick="selectFaculty('${f.id}')" style="--fc:${f.color}">
+      <div class="fc-icon">${f.icon}</div>
+      <div class="fc-name" style="color:${f.color}">${f.name}</div>
+      <div class="fc-slogan">${f.slogan}</div>
+      <div class="fc-for">${f.for}</div>
+    </div>
+  `).join('');
+}
+
+function selectFaculty(id){
+  currentFaculty = faculties.find(f=>f.id===id);
+  currentQ = 0;
+  totalScore = 0;
+  answers = [];
+  document.getElementById('stepSelect').style.display = 'none';
+  document.getElementById('stepQuiz').style.display = 'block';
+  document.getElementById('pageTitle').textContent = 'Вступительный тест';
+  document.getElementById('pageSubtitle').textContent = currentFaculty.name;
+  showQuestion();
+}
+
+function showQuestion(){
+  const q = currentFaculty.test_questions[currentQ];
+  const total = currentFaculty.test_questions.length;
+  document.getElementById('quizCounter').textContent = `Вопрос ${currentQ+1} из ${total}`;
+  document.getElementById('quizProgress').style.width = `${(currentQ/total)*100}%`;
+  document.getElementById('quizQ').textContent = q.q;
+  document.getElementById('quizOpts').innerHTML = q.options.map((o,i)=>`
+    <button class="quiz-opt" onclick="chooseOpt(${i},${o.score})">${o.text}</button>
+  `).join('');
+}
+
+function chooseOpt(idx, score){
+  // highlight
+  document.querySelectorAll('.quiz-opt').forEach((b,i)=>{
+    b.disabled = true;
+    if(i===idx) b.classList.add('chosen');
+  });
+  totalScore += score;
+  setTimeout(()=>{
+    currentQ++;
+    if(currentQ < currentFaculty.test_questions.length){
+      showQuestion();
+    } else {
+      showResult();
+    }
+  }, 400);
+}
+
+function showResult(){
+  document.getElementById('stepQuiz').style.display = 'none';
+  const wrap = document.getElementById('stepResult');
+  wrap.style.display = 'block';
+  const maxScore = currentFaculty.test_questions.length * 2;
+  const pct = totalScore / maxScore;
+
+  let icon, title, sub, btns;
+  if(pct >= 0.7){
+    icon = '🎉';
+    title = `Поздравляем! Ты принят на ${currentFaculty.name}`;
+    sub = `Ты набрал ${totalScore} из ${maxScore} баллов. Добро пожаловать — тебя ждут задания, кейсы и декан!`;
+    localStorage.setItem('ssg_faculty', currentFaculty.id);
+    btns = `<a href="faculty-room.html?id=${currentFaculty.id}" class="btn-peach" style="display:inline-block;margin-bottom:12px">Начать обучение →</a>`;
+  } else if(pct >= 0.4){
+    icon = '🌱';
+    title = 'Ты на пороге! Ещё немного — и ты наш';
+    sub = `${totalScore} из ${maxScore} баллов. Совсем близко. Попробуй ещё раз?`;
+    btns = `<button class="btn-try" onclick="retryQuiz()">Попробовать снова</button>`;
+  } else {
+    icon = '💪';
+    title = 'Пока не хватает — но ты можешь вернуться';
+    sub = `${totalScore} из ${maxScore} баллов. Развивай навыки и возвращайся!`;
+    btns = `<button class="btn-try" onclick="backToSelect()">Выбрать другой факультет</button><br><br><button class="btn-try" onclick="retryQuiz()">Попробовать снова</button>`;
+  }
+
+  document.getElementById('resultIcon').textContent = icon;
+  document.getElementById('resultTitle').textContent = title;
+  document.getElementById('resultSub').textContent = sub;
+  document.getElementById('resultBtns').innerHTML = btns;
+  document.getElementById('pageTitle').textContent = 'Результат';
+  document.getElementById('pageSubtitle').textContent = '';
+}
+
+function retryQuiz(){
+  document.getElementById('stepResult').style.display = 'none';
+  document.getElementById('stepQuiz').style.display = 'block';
+  currentQ = 0;
+  totalScore = 0;
+  document.getElementById('pageTitle').textContent = 'Вступительный тест';
+  document.getElementById('pageSubtitle').textContent = currentFaculty.name;
+  showQuestion();
+}
+
+function backToSelect(){
+  document.getElementById('stepResult').style.display = 'none';
+  document.getElementById('stepSelect').style.display = 'block';
+  document.getElementById('pageTitle').textContent = 'Выбери свой факультет';
+  document.getElementById('pageSubtitle').textContent = 'Пройди вступительный тест и узнай, где твоё место';
+}
+</script>
+</body>
+</html>

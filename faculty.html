@@ -74,8 +74,32 @@ let answers = [];
 
 fetch('data/faculties.json').then(r=>r.json()).then(data=>{
   faculties = data;
+  // Если уже есть факультет — показать его и дать войти
+  const saved = localStorage.getItem('ssg_faculty');
+  if(saved){
+    const f = faculties.find(x=>x.id===saved);
+    if(f){
+      document.getElementById('pageTitle').textContent = 'Твой факультет';
+      document.getElementById('pageSubtitle').textContent = '';
+      document.getElementById('stepSelect').innerHTML = `
+        <div style="text-align:center;padding:20px 0">
+          <div style="font-size:3rem;margin-bottom:10px">${f.icon}</div>
+          <div style="font-size:1.3rem;font-weight:900;color:${f.color};margin-bottom:6px">${f.name}</div>
+          <div style="font-size:.9rem;color:var(--text3);margin-bottom:24px">${f.slogan}</div>
+          <a href="faculty-room.html?id=${f.id}" class="btn-peach" style="display:inline-block;margin-bottom:12px">Войти в комнату →</a>
+          <br>
+          <button onclick="clearFaculty()" style="background:none;border:none;color:var(--text3);font-size:.85rem;cursor:pointer;margin-top:8px;text-decoration:underline">Сменить факультет</button>
+        </div>`;
+      return;
+    }
+  }
   renderGrid();
 });
+
+function clearFaculty(){
+  localStorage.removeItem('ssg_faculty');
+  location.reload();
+}
 
 function renderGrid(){
   const grid = document.getElementById('facultyGrid');
@@ -91,6 +115,8 @@ function renderGrid(){
 
 function selectFaculty(id){
   currentFaculty = faculties.find(f=>f.id===id);
+  // Сохраняем сразу при выборе — тест только показывает уровень
+  localStorage.setItem('ssg_faculty', currentFaculty.id);
   currentQ = 0;
   totalScore = 0;
   answers = [];
@@ -140,20 +166,18 @@ function showResult(){
   if(pct >= 0.7){
     icon = '🎉';
     title = `Поздравляем! Ты принят на ${currentFaculty.name}`;
-    sub = `Ты набрал ${totalScore} из ${maxScore} баллов. Добро пожаловать — тебя ждут задания, кейсы и декан!`;
-    localStorage.setItem('ssg_faculty', currentFaculty.id);
-    btns = `<a href="faculty-room.html?id=${currentFaculty.id}" class="btn-peach" style="display:inline-block;margin-bottom:12px">Начать обучение →</a>`;
+    sub = `Ты набрал ${totalScore} из ${maxScore} баллов. Отличная подготовка — добро пожаловать!`;
   } else if(pct >= 0.4){
     icon = '🌱';
-    title = 'Ты на пороге! Ещё немного — и ты наш';
-    sub = `${totalScore} из ${maxScore} баллов. Совсем близко. Попробуй ещё раз?`;
-    btns = `<button class="btn-try" onclick="retryQuiz()">Попробовать снова</button>`;
+    title = `Добро пожаловать на ${currentFaculty.name}!`;
+    sub = `${totalScore} из ${maxScore} баллов. Есть куда расти — именно для этого факультет и существует!`;
   } else {
     icon = '💪';
-    title = 'Пока не хватает — но ты можешь вернуться';
-    sub = `${totalScore} из ${maxScore} баллов. Развивай навыки и возвращайся!`;
-    btns = `<button class="btn-try" onclick="backToSelect()">Выбрать другой факультет</button><br><br><button class="btn-try" onclick="retryQuiz()">Попробовать снова</button>`;
+    title = `Ты зачислен на ${currentFaculty.name}!`;
+    sub = `${totalScore} из ${maxScore} баллов. Навыки прокачаем вместе — это только начало!`;
   }
+  btns = `<a href="faculty-room.html?id=${currentFaculty.id}" class="btn-peach" style="display:inline-block;margin-bottom:12px">Начать обучение →</a>
+  <br><button class="btn-try" onclick="backToSelect()" style="margin-top:8px">Выбрать другой факультет</button>`;
 
   document.getElementById('resultIcon').textContent = icon;
   document.getElementById('resultTitle').textContent = title;

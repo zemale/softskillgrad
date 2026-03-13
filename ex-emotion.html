@@ -112,7 +112,7 @@ async function init(){
   const [ir,sr]=await Promise.all([fetch('data/interactive.json'),fetch('data/skills.json')]);
   const idata=await ir.json(); const sdata=await sr.json();
   // Merge questions from empathy and emotional_intelligence
-  const q1=idata.emotion[skillId]||[];
+  const q1=idata.emotion[skillId]||idata.emotion['default']||[];
   const q2=idata.emotion['empathy']||[];
   const q3=idata.emotion['emotional_intelligence']||[];
   questions=[...q1,...q2,...q3].filter((q,i,a)=>a.findIndex(x=>x.situation===q.situation)===i);

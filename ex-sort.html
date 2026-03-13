@@ -92,7 +92,7 @@ let scenario, order=[];
 async function init(){
   const [ir,sr] = await Promise.all([fetch('data/interactive.json'),fetch('data/skills.json')]);
   const idata=await ir.json(); const sdata=await sr.json();
-  scenario=idata.sort[skillId]||idata.sort['conflict_resolution'];
+  scenario=idata.sort[skillId]||idata.sort['default'];
   let dist; for(const d of sdata.districts){if(d.skills.find(s=>s.id===skillId)){dist=d;break;}}
   document.getElementById('backBtn').href=`skill.html?id=${skillId}&district=${districtId||dist?.id||''}`;
   document.getElementById('heroTitle').textContent=scenario.title;

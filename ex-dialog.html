@@ -103,7 +103,7 @@ async function init(){
   const idata = await ir.json();
   const sdata = await sr.json();
 
-  scenario = idata.dialog[skillId];
+  scenario = idata.dialog[skillId] || idata.dialog['default'];
   if(!scenario){ document.getElementById('heroTitle').textContent='Упражнение не найдено'; return; }
 
   // Find skill for back link

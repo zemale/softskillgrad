@@ -120,7 +120,7 @@ let scenario, timerInterval, timeLeft;
 async function init(){
   const [ir,sr]=await Promise.all([fetch('data/interactive.json'),fetch('data/skills.json')]);
   const idata=await ir.json(); const sdata=await sr.json();
-  scenario=idata.timer[skillId]||idata.timer['divergent'];
+  scenario=idata.timer[skillId]||idata.timer['default'];
   let dist; for(const d of sdata.districts){if(d.skills.find(s=>s.id===skillId)){dist=d;break;}}
   document.getElementById('backBtn').href=`skill.html?id=${skillId}&district=${districtId||dist?.id||''}`;
   document.getElementById('heroTitle').textContent=scenario.title;

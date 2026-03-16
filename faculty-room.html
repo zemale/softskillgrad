@@ -179,7 +179,7 @@
   </div>
   <div id="app">
 <!-- КЛЯТВА (оверлей поверх всего) -->
-<div id="oathOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px">
+<div id="oathOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;padding:20px">
   <div style="background:white;border-radius:20px;padding:28px 24px;max-width:420px;width:100%;text-align:center;position:relative">
     <div id="oathBadge" style="font-size:3rem;margin-bottom:12px"></div>
     <div id="oathTitle" style="font-weight:900;font-size:1.1rem;margin-bottom:16px"></div>
@@ -1257,7 +1257,7 @@ function signOath(){
   localStorage.setItem(`ssg_oath_${FACULTY.id}`, Date.now());
   document.getElementById('oathOverlay').style.display = 'none';
   addXP(20);
-  showToast('🤝 Клятва принята! +20 XP');
+  showXPToast('🤝 Клятва принята! +20 XP');
 }
 
 // ===== ПРОФИЛЬ ВЫПУСКНИКА =====
@@ -1313,7 +1313,7 @@ function saveGraduate(fid){
   if(!profession && !principle && !motto){ alert('Заполни хотя бы одно поле!'); return; }
   localStorage.setItem(`ssg_graduate_profile_${fid}`, JSON.stringify({profession, principle, motto}));
   addXP(15);
-  showToast('👤 Профиль сохранён! +15 XP');
+  showXPToast('👤 Профиль сохранён! +15 XP');
   renderGraduate(FACULTY);
 }
 function editGraduate(fid){

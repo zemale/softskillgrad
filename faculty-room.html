@@ -192,6 +192,8 @@ fetch('data/faculties.json').then(r=>r.json()).then(faculties=>{
   document.documentElement.style.setProperty('--fac-color', f.color);
   applyRoomLevel(f);
   render(f);
+  if(window._groupAInit) window._groupAInit(f);
+  if(window._groupBInit) window._groupBInit(f);
 });
 
 /* ===== УРОВЕНЬ КОМНАТЫ ===== */
@@ -875,5 +877,336 @@ function switchFaculty(){
 // Загрузка тренажёра после рендера
 setTimeout(()=>{ if(FACULTY) loadTrainer(FACULTY); }, 300);
 </script>
+
+<!-- ===== ГРУППА А: НОВОСТИ, КАРТА, РОЛЕВАЯ ИГРА, ВДОХНОВЕНИЕ ===== -->
+
+<!-- НОВОСТИ -->
+<section class="fr-section">
+  <h2 class="fr-title">📰 Новости факультета</h2>
+  <div id="newsFeed"></div>
+</section>
+
+<!-- КАРТА ПРОФЕССИЙ -->
+<section class="fr-section">
+  <h2 class="fr-title">🗺️ Карта профессий</h2>
+  <p style="font-size:.85rem;color:var(--text3);margin-bottom:12px">Куда ведут навыки твоего факультета</p>
+  <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+    <button class="ctab active" id="ctab-entry" onclick="filterCareer('entry',this)">Сейчас</button>
+    <button class="ctab" id="ctab-mid" onclick="filterCareer('mid',this)">После школы</button>
+    <button class="ctab" id="ctab-senior" onclick="filterCareer('senior',this)">После вуза</button>
+  </div>
+  <div id="careerGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
+</section>
+
+<!-- РОЛЕВАЯ ИГРА -->
+<section class="fr-section">
+  <h2 class="fr-title">🎭 Ролевая игра</h2>
+  <p style="font-size:.85rem;color:var(--text3);margin-bottom:12px">Побудь в роли профессии своего факультета</p>
+  <div id="roleplayList"></div>
+  <div id="roleplayScene" style="display:none"></div>
+</section>
+
+<!-- СТЕНА ВДОХНОВЕНИЯ -->
+<section class="fr-section">
+  <h2 class="fr-title">💡 Стена вдохновения</h2>
+  <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+    <button onclick="shuffleInspiration()" style="background:none;border:1.5px solid var(--border);border-radius:10px;padding:6px 14px;font-size:.82rem;cursor:pointer;color:var(--text3)">🔀 Обновить</button>
+  </div>
+  <div id="inspirationGrid" style="columns:2;gap:10px"></div>
+</section>
+
+<style>
+.ctab{border:1.5px solid var(--border);background:var(--card);border-radius:10px;padding:6px 14px;font-size:.82rem;cursor:pointer;transition:.15s}
+.ctab.active{background:var(--sage);color:white;border-color:var(--sage)}
+.career-card{border-radius:14px;padding:14px;border:1.5px solid var(--border);background:var(--card);cursor:pointer;transition:.15s}
+.career-card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.career-card.entry{border-top:3px solid var(--sage)}
+.career-card.mid{border-top:3px solid var(--peach)}
+.career-card.senior{border-top:3px solid var(--sky)}
+.rp-scene{background:var(--card);border-radius:14px;padding:16px;margin-bottom:12px;border-left:4px solid var(--sage);font-size:.9rem;line-height:1.6}
+.rp-choice{width:100%;text-align:left;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:8px;cursor:pointer;transition:.15s;font-size:.88rem;display:block}
+.rp-choice:hover{border-color:var(--sage)}
+.insp-quote{background:#e8f5e9}.insp-fact{background:#e3f2fd}.insp-challenge{background:#fff8e1}.insp-thought{background:#f3e5f5}
+.insp-card{break-inside:avoid;border-radius:14px;padding:14px;margin-bottom:10px;font-size:.87rem;line-height:1.55}
+</style>
+
+<script>
+// ===== НОВОСТИ =====
+function renderNews(f){
+  const feed = document.getElementById('newsFeed');
+  if(!f?.news){feed.innerHTML='<p style="color:var(--text3);font-size:.85rem">Скоро</p>';return}
+  const joined = localStorage.getItem('ssg_faculty_joined')||Date.now();
+  const daysSince = Math.floor((Date.now()-+joined)/86400000);
+  const all = f.news;
+  const dates=['Сегодня','Вчера','2 дня назад'];
+  const shown = [0,1,2].map(i=>all[(daysSince-i+all.length*10)%all.length]);
+  feed.innerHTML = shown.map((n,i)=>`
+    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-weight:900;font-size:.9rem">${n.emoji} ${n.title}</div>
+        <div style="font-size:.75rem;color:var(--text3)">${dates[i]}</div>
+      </div>
+      <div style="font-size:.85rem;color:var(--text);line-height:1.6">${n.text}</div>
+    </div>`).join('');
+}
+
+// ===== КАРТА ПРОФЕССИЙ =====
+let _faculty=null;
+function renderCareer(level){
+  const grid=document.getElementById('careerGrid');
+  if(!_faculty?.career_map){grid.innerHTML='<p style="color:var(--text3)">Скоро</p>';return}
+  const profs=_faculty.career_map.professions.filter(p=>p.level===level);
+  grid.innerHTML=profs.map(p=>`
+    <div class="career-card ${p.level}" onclick="this.querySelector('.cd').style.display=this.querySelector('.cd').style.display==='none'?'block':'none'">
+      <div style="font-size:1.5rem">${p.emoji}</div>
+      <div style="font-weight:900;font-size:.88rem;margin:4px 0">${p.name}</div>
+      <div style="font-size:.78rem;color:var(--text3);line-height:1.4">${p.description}</div>
+      <div class="cd" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:.78rem;color:#2e7d32;line-height:1.5">💡 ${p.path}</div>
+    </div>`).join('');
+}
+function filterCareer(level,btn){
+  document.querySelectorAll('.ctab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCareer(level);
+}
+
+// ===== РОЛЕВАЯ ИГРА =====
+let rpData=null,rpScores={},rpScene=0;
+function renderRoleplayList(f){
+  const list=document.getElementById('roleplayList');
+  if(!f?.roleplay){list.innerHTML='<p style="color:var(--text3)">Скоро</p>';return}
+  const done=JSON.parse(localStorage.getItem(`ssg_roleplay_${f.id}`)||'[]');
+  list.innerHTML=f.roleplay.map(rp=>`
+    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px;cursor:pointer" onclick="startRoleplay('${rp.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-weight:900;font-size:.92rem">${done.includes(rp.id)?'✅ ':''} ${rp.title}</div>
+          <div style="font-size:.8rem;color:var(--text3);margin-top:3px">👤 ${rp.role}</div>
+        </div>
+        <span style="font-size:1.2rem;color:var(--text3)">→</span>
+      </div>
+    </div>`).join('');
+}
+function startRoleplay(id){
+  rpData=_faculty.roleplay.find(r=>r.id===id);
+  if(!rpData) return;
+  rpScores={};rpScene=0;
+  document.getElementById('roleplayList').style.display='none';
+  document.getElementById('roleplayScene').style.display='block';
+  renderRpScene();
+}
+function renderRpScene(){
+  const el=document.getElementById('roleplayScene');
+  if(rpScene===0){
+    el.innerHTML=`<div style="background:#e8f5e9;border-radius:14px;padding:14px;margin-bottom:12px;font-size:.86rem;line-height:1.6">
+      <div style="font-weight:900;margin-bottom:4px">🎭 ${rpData.role}</div>${rpData.intro}</div>
+      <button class="btn-primary" onclick="rpScene=1;renderRpScene()" style="font-size:.88rem;padding:10px 20px">Начать →</button>`;
+    return;
+  }
+  const si=rpScene-1;
+  if(si>=rpData.scenes.length){showRpEnding();return}
+  const scene=rpData.scenes[si];
+  el.innerHTML=`<div style="font-size:.75rem;color:var(--text3);margin-bottom:8px;font-weight:700">Сцена ${si+1} из ${rpData.scenes.length}</div>
+    <div class="rp-scene">${scene.text}</div>
+    ${scene.choices.map((c,ci)=>`<button class="rp-choice" onclick="chooseRp(${si},${ci})">${c.text}</button>`).join('')}`;
+}
+function chooseRp(si,ci){
+  const scene=rpData.scenes[si];
+  const choice=scene.choices[ci];
+  rpScores[si]=choice.score;
+  const el=document.getElementById('roleplayScene');
+  el.innerHTML=`<div style="font-size:.75rem;color:var(--text3);margin-bottom:8px;font-weight:700">Сцена ${si+1} из ${rpData.scenes.length}</div>
+    <div class="rp-scene">${scene.text}</div>
+    <div style="background:${choice.score>=2?'#e8f5e9':choice.score===1?'#fff8e1':'#ffefef'};border-radius:12px;padding:12px 14px;font-size:.86rem;margin-bottom:14px;line-height:1.5">
+      ${choice.score>=2?'✅':'💡'} ${choice.result}</div>
+    <button class="btn-primary" onclick="rpScene=${si+2};renderRpScene()" style="font-size:.88rem;padding:10px 20px">Далее →</button>`;
+}
+function showRpEnding(){
+  const total=Object.values(rpScores).reduce((a,b)=>a+b,0);
+  const ending=[...rpData.endings].reverse().find(e=>total>=e.min)||rpData.endings[rpData.endings.length-1];
+  document.getElementById('roleplayScene').innerHTML=`
+    <div style="text-align:center;padding:20px 0">
+      <div style="font-size:2.5rem;margin-bottom:10px">🎭</div>
+      <div style="font-weight:900;font-size:1.1rem;margin-bottom:8px">${ending.title}</div>
+      <div style="font-size:.88rem;line-height:1.6;margin-bottom:20px">${ending.text}</div>
+      <button class="btn-primary" onclick="finishRoleplay()" style="font-size:.88rem;padding:10px 20px">Завершить</button>
+    </div>`;
+  const done=JSON.parse(localStorage.getItem(`ssg_roleplay_${_faculty.id}`)||'[]');
+  if(!done.includes(rpData.id)){done.push(rpData.id);localStorage.setItem(`ssg_roleplay_${_faculty.id}`,JSON.stringify(done));}
+  addXP(25);
+}
+function finishRoleplay(){
+  document.getElementById('roleplayScene').style.display='none';
+  document.getElementById('roleplayList').style.display='block';
+  renderRoleplayList(_faculty);
+}
+
+// ===== ВДОХНОВЕНИЕ =====
+let _inspirItems=[];
+function renderInspiration(f){
+  if(!f?.inspiration_wall) return;
+  _inspirItems=f.inspiration_wall;
+  shuffleInspiration();
+}
+function shuffleInspiration(){
+  const grid=document.getElementById('inspirationGrid');
+  const items=[..._inspirItems].sort(()=>Math.random()-.5).slice(0,6);
+  grid.innerHTML=items.map(item=>`
+    <div class="insp-card insp-${item.type}">
+      <div style="font-size:1.2rem;margin-bottom:5px">${item.emoji}</div>
+      <div>${item.text}</div>
+      ${item.author?`<div style="font-size:.75rem;color:var(--text3);margin-top:5px;font-style:italic">— ${item.author}</div>`:''}
+    </div>`).join('');
+}
+
+// Хук — вызывается после загрузки faculty
+(function(){
+  const orig=window.render||null;
+  window._groupAInit=function(f){
+    _faculty=f;
+    renderNews(f);
+    renderCareer('entry');
+    renderRoleplayList(f);
+    renderInspiration(f);
+  };
+})();
+</script>
+<!-- ===== ГРУППА Б: ПОДКАСТ + ЭКЗАМЕН ===== -->
+
+<!-- ПОДКАСТ -->
+<section class="fr-section">
+  <h2 class="fr-title">🎙️ Подкаст факультета</h2>
+  <p style="font-size:.85rem;color:var(--text3);margin-bottom:12px">Слушай — читай — думай</p>
+  <div id="podcastList"></div>
+</section>
+
+<!-- ЭКЗАМЕН -->
+<section class="fr-section" id="examSection">
+  <h2 class="fr-title">📝 Экзамен факультета</h2>
+  <div id="examBlock"></div>
+</section>
+
+<script>
+// ===== ПОДКАСТ =====
+function renderPodcast(f){
+  const el = document.getElementById('podcastList');
+  if(!f?.podcast){ el.innerHTML='<p style="color:var(--text3);font-size:.85rem">Скоро</p>'; return; }
+  const done = JSON.parse(localStorage.getItem(`ssg_podcast_${f.id}`)||'[]');
+  el.innerHTML = f.podcast.map((ep,i)=>`
+    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;margin-bottom:10px;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer" onclick="togglePodcast(${i})">
+        <div style="width:40px;height:40px;border-radius:50%;background:var(--fac-color,var(--sage));display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:.85rem;flex-shrink:0">
+          ${done.includes(i)?'✓':ep.ep}
+        </div>
+        <div style="flex:1">
+          <div style="font-weight:900;font-size:.9rem">${ep.title}</div>
+          <div style="font-size:.75rem;color:var(--text3);margin-top:2px">🕐 ${ep.duration}</div>
+        </div>
+        <span id="podArrow_${i}" style="color:var(--text3);transition:.2s">▼</span>
+      </div>
+      <div id="podBody_${i}" style="display:none;padding:0 16px 16px;border-top:1px solid var(--border)">
+        <div style="font-size:.87rem;line-height:1.7;color:var(--text);white-space:pre-line;padding-top:12px">${ep.text}</div>
+        ${!done.includes(i)?`<button onclick="markPodcastDone(${i},'${f.id}')" style="margin-top:12px;background:var(--sage);color:white;border:none;border-radius:10px;padding:8px 16px;font-size:.82rem;cursor:pointer">✅ Прочитал</button>`:'<div style="color:var(--sage);font-size:.8rem;margin-top:10px;font-weight:700">✅ Прочитано</div>'}
+      </div>
+    </div>`).join('');
+}
+function togglePodcast(i){
+  const body = document.getElementById(`podBody_${i}`);
+  const arrow = document.getElementById(`podArrow_${i}`);
+  const open = body.style.display!=='none';
+  body.style.display = open?'none':'block';
+  arrow.textContent = open?'▼':'▲';
+}
+function markPodcastDone(i, fid){
+  const done = JSON.parse(localStorage.getItem(`ssg_podcast_${fid}`)||'[]');
+  if(!done.includes(i)){ done.push(i); localStorage.setItem(`ssg_podcast_${fid}`, JSON.stringify(done)); }
+  addXP(10);
+  renderPodcast(FACULTY);
+}
+
+// ===== ЭКЗАМЕН =====
+let examAnswers={}, examDone=false;
+function renderExam(f){
+  const el = document.getElementById('examBlock');
+  if(!f?.exam){ el.innerHTML='<p style="color:var(--text3);font-size:.85rem">Скоро</p>'; return; }
+  // Проверяем разблокировку — нужно прочитать все 4 лекции
+  const lecturesDone = JSON.parse(localStorage.getItem(`ssg_lectures_${f.id}`)||'[]');
+  const lectureCount = f.lectures ? f.lectures.length : 4;
+  if(lecturesDone.length < lectureCount){
+    el.innerHTML = `<div style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:20px;text-align:center">
+      <div style="font-size:2rem;margin-bottom:8px">🔒</div>
+      <div style="font-weight:900;font-size:.95rem;margin-bottom:6px">Экзамен заблокирован</div>
+      <div style="font-size:.85rem;color:var(--text3)">${f.exam.unlock_hint}</div>
+      <div style="font-size:.82rem;color:var(--peach);margin-top:8px">Прочитано лекций: ${lecturesDone.length} из ${lectureCount}</div>
+    </div>`;
+    return;
+  }
+  // Проверяем сохранённый результат
+  const saved = localStorage.getItem(`ssg_exam_${f.id}`);
+  if(saved){
+    const res = JSON.parse(saved);
+    showExamResult(f, res.score, res.total);
+    return;
+  }
+  // Показать экзамен
+  el.innerHTML = `<div style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:20px;text-align:center;margin-bottom:16px">
+    <div style="font-size:1.8rem;margin-bottom:6px">📝</div>
+    <div style="font-weight:900;font-size:1rem;margin-bottom:4px">${f.exam.title}</div>
+    <div style="font-size:.83rem;color:var(--text3)">${f.exam.questions.length} вопросов · ответи на все и нажми «Завершить»</div>
+  </div>
+  <div id="examQuestions"></div>
+  <button onclick="submitExam('${f.id}')" style="width:100%;background:var(--sage);color:white;border:none;border-radius:14px;padding:14px;font-size:.95rem;font-weight:900;cursor:pointer;margin-top:10px">Завершить экзамен</button>`;
+  examAnswers = {};
+  const qEl = document.getElementById('examQuestions');
+  qEl.innerHTML = f.exam.questions.map((q,qi)=>`
+    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px" id="eq_${qi}">
+      <div style="font-weight:700;font-size:.9rem;margin-bottom:10px">${qi+1}. ${q.q}</div>
+      ${q.options.map((opt,oi)=>`
+        <label style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;cursor:pointer;margin-bottom:6px;border:1.5px solid var(--border);background:var(--bg);font-size:.85rem;transition:.15s">
+          <input type="radio" name="eq${qi}" value="${oi}" onchange="examAnswers[${qi}]=${oi}" style="accent-color:var(--sage)">
+          ${opt}
+        </label>`).join('')}
+    </div>`).join('');
+}
+function submitExam(fid){
+  const f = FACULTY;
+  const total = f.exam.questions.length;
+  const answered = Object.keys(examAnswers).length;
+  if(answered < total){
+    alert(`Ответь на все вопросы! Осталось: ${total-answered}`);
+    return;
+  }
+  let score = 0;
+  f.exam.questions.forEach((q,qi)=>{ if(examAnswers[qi]===q.correct) score++; });
+  localStorage.setItem(`ssg_exam_${fid}`, JSON.stringify({score, total}));
+  if(score >= Math.ceil(total*0.8)) addXP(50);
+  else addXP(20);
+  showExamResult(f, score, total);
+}
+function showExamResult(f, score, total){
+  const pct = score/total;
+  const grade = f.exam.grades.slice().reverse().find(g=>score>=g.min)||f.exam.grades[f.exam.grades.length-1];
+  const el = document.getElementById('examBlock');
+  el.innerHTML = `<div style="text-align:center;padding:24px 16px">
+    <div style="font-size:3rem;margin-bottom:10px">${pct>=0.85?'🏆':pct>=0.65?'🌿':'🌱'}</div>
+    <div style="font-weight:900;font-size:1.1rem;margin-bottom:6px">${grade.title}</div>
+    <div style="font-size:2rem;font-weight:900;color:var(--fac-color,var(--sage));margin-bottom:8px">${score}/${total}</div>
+    <div style="font-size:.87rem;line-height:1.6;margin-bottom:20px;color:var(--text)">${grade.text}</div>
+    ${pct<0.8?`<button onclick="retakeExam('${f.id}')" style="background:var(--peach);color:white;border:none;border-radius:12px;padding:10px 24px;font-size:.9rem;cursor:pointer">🔄 Пересдать</button>`:''}
+  </div>`;
+}
+function retakeExam(fid){
+  localStorage.removeItem(`ssg_exam_${fid}`);
+  renderExam(FACULTY);
+}
+
+// Хук для группы Б
+window._groupBInit = function(f){
+  renderPodcast(f);
+  renderExam(f);
+};
+</script>
+
 </body>
+</html>
 </html>

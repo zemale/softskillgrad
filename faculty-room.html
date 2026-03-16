@@ -207,6 +207,7 @@ fetch('data/faculties.json').then(r=>r.json()).then(faculties=>{
   if(window._groupAInit) window._groupAInit(f);
   if(window._groupBInit) window._groupBInit(f);
   if(window._groupCInit) window._groupCInit(f);
+  else console.warn('_groupCInit not defined yet!');
 });
 
 /* ===== УРОВЕНЬ КОМНАТЫ ===== */
@@ -1386,9 +1387,9 @@ function stat(emoji, label, value){
 
 // Хук группы В
 window._groupCInit = function(f){
-  checkOath(f);
-  renderGraduate(f);
-  renderProfile(f);
+  try { checkOath(f); } catch(e){ console.error('oath err',e); }
+  try { renderGraduate(f); } catch(e){ console.error('graduate err',e); }
+  try { renderProfile(f); } catch(e){ console.error('profile err',e); }
 };
 </script>
 

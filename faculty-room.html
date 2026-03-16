@@ -177,7 +177,19 @@
   <div class="page-header">
     <a href="index.html" class="back-btn">← На главную</a>
   </div>
-  <div id="app">Загружаем...</div>
+  <div id="app">
+<!-- КЛЯТВА (оверлей поверх всего) -->
+<div id="oathOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="background:white;border-radius:20px;padding:28px 24px;max-width:420px;width:100%;text-align:center;position:relative">
+    <div id="oathBadge" style="font-size:3rem;margin-bottom:12px"></div>
+    <div id="oathTitle" style="font-weight:900;font-size:1.1rem;margin-bottom:16px"></div>
+    <div id="oathLines" style="text-align:left;margin-bottom:20px"></div>
+    <div id="oathDean" style="font-size:.82rem;color:#666;font-style:italic;margin-bottom:20px;line-height:1.5"></div>
+    <button id="oathBtn" onclick="signOath()" style="width:100%;background:var(--fac-color,#7ab893);color:white;border:none;border-radius:14px;padding:14px;font-size:.95rem;font-weight:900;cursor:pointer">
+      ✍️ Я принимаю клятву
+    </button>
+  </div>
+</div>Загружаем...</div>
 </div>
 
 <script>
@@ -194,6 +206,7 @@ fetch('data/faculties.json').then(r=>r.json()).then(faculties=>{
   render(f);
   if(window._groupAInit) window._groupAInit(f);
   if(window._groupBInit) window._groupBInit(f);
+  if(window._groupCInit) window._groupCInit(f);
 });
 
 /* ===== УРОВЕНЬ КОМНАТЫ ===== */
@@ -1204,6 +1217,178 @@ function retakeExam(fid){
 window._groupBInit = function(f){
   renderPodcast(f);
   renderExam(f);
+};
+</script>
+
+<!-- ===== ГРУППА В ===== -->
+
+<!-- ПРОФИЛЬ ВЫПУСКНИКА -->
+<section class="fr-section">
+  <h2 class="fr-title">👤 Профиль выпускника</h2>
+  <p style="font-size:.85rem;color:var(--text3);margin-bottom:14px">Каким ты видишь себя через несколько лет?</p>
+  <div id="graduateBlock"></div>
+</section>
+
+<!-- ЛИЧНОЕ ДЕЛО -->
+<section class="fr-section">
+  <h2 class="fr-title">📋 Личное дело</h2>
+  <div id="profileBlock"></div>
+</section>
+
+<script>
+// ===== КЛЯТВА =====
+function checkOath(f){
+  const done = localStorage.getItem(`ssg_oath_${f.id}`);
+  if(done) return; // уже принял
+  if(!f.oath) return;
+  const overlay = document.getElementById('oathOverlay');
+  overlay.style.display = 'flex';
+  document.getElementById('oathBadge').textContent = f.oath.badge;
+  document.getElementById('oathTitle').textContent = f.oath.title;
+  document.getElementById('oathLines').innerHTML = f.oath.lines.map(l=>
+    `<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px;font-size:.88rem;line-height:1.5">
+      <span style="color:var(--fac-color,#7ab893);font-weight:900;margin-top:1px">✦</span>
+      <span>${l}</span>
+    </div>`).join('');
+  document.getElementById('oathDean').textContent = f.oath.dean_phrase;
+}
+function signOath(){
+  if(!FACULTY) return;
+  localStorage.setItem(`ssg_oath_${FACULTY.id}`, Date.now());
+  document.getElementById('oathOverlay').style.display = 'none';
+  addXP(20);
+  showToast('🤝 Клятва принята! +20 XP');
+}
+
+// ===== ПРОФИЛЬ ВЫПУСКНИКА =====
+function renderGraduate(f){
+  const el = document.getElementById('graduateBlock');
+  const key = `ssg_graduate_profile_${f.id}`;
+  const saved = JSON.parse(localStorage.getItem(key)||'null');
+  if(saved){
+    el.innerHTML = `
+      <div style="background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:20px">
+        <div style="display:grid;gap:14px;margin-bottom:16px">
+          <div>
+            <div style="font-size:.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">🚀 Будущая профессия</div>
+            <div style="font-size:.95rem;font-weight:900">${saved.profession||'—'}</div>
+          </div>
+          <div>
+            <div style="font-size:.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">⚖️ Главный принцип</div>
+            <div style="font-size:.88rem;line-height:1.5">${saved.principle||'—'}</div>
+          </div>
+          <div>
+            <div style="font-size:.72rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">✨ Мой девиз</div>
+            <div style="font-size:.88rem;font-style:italic;line-height:1.5">"${saved.motto||'—'}"</div>
+          </div>
+        </div>
+        <button onclick="editGraduate('${f.id}')" style="background:none;border:1.5px solid var(--border);border-radius:10px;padding:8px 16px;font-size:.82rem;cursor:pointer;color:var(--text3)">✏️ Изменить</button>
+      </div>`;
+    return;
+  }
+  el.innerHTML = `
+    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:20px">
+      <div style="margin-bottom:14px">
+        <label style="font-size:.8rem;font-weight:700;color:var(--text3);display:block;margin-bottom:5px">🚀 Кем ты хочешь стать?</label>
+        <input id="gpProfession" placeholder="Например: детский психолог, режиссёр, учёный..."
+          style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:.88rem;box-sizing:border-box;background:var(--bg)">
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="font-size:.8rem;font-weight:700;color:var(--text3);display:block;margin-bottom:5px">⚖️ Твой главный жизненный принцип</label>
+        <input id="gpPrinciple" placeholder="Например: Всегда говорить правду..."
+          style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:.88rem;box-sizing:border-box;background:var(--bg)">
+      </div>
+      <div style="margin-bottom:18px">
+        <label style="font-size:.8rem;font-weight:700;color:var(--text3);display:block;margin-bottom:5px">✨ Твой личный девиз</label>
+        <input id="gpMotto" placeholder="Например: Делай сейчас, совершенствуй потом..."
+          style="width:100%;border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:.88rem;box-sizing:border-box;background:var(--bg)">
+      </div>
+      <button onclick="saveGraduate('${f.id}')" class="btn-primary" style="width:100%">💾 Сохранить профиль</button>
+    </div>`;
+}
+function saveGraduate(fid){
+  const profession = document.getElementById('gpProfession').value.trim();
+  const principle = document.getElementById('gpPrinciple').value.trim();
+  const motto = document.getElementById('gpMotto').value.trim();
+  if(!profession && !principle && !motto){ alert('Заполни хотя бы одно поле!'); return; }
+  localStorage.setItem(`ssg_graduate_profile_${fid}`, JSON.stringify({profession, principle, motto}));
+  addXP(15);
+  showToast('👤 Профиль сохранён! +15 XP');
+  renderGraduate(FACULTY);
+}
+function editGraduate(fid){
+  localStorage.removeItem(`ssg_graduate_profile_${fid}`);
+  renderGraduate(FACULTY);
+}
+
+// ===== ЛИЧНОЕ ДЕЛО =====
+function renderProfile(f){
+  const el = document.getElementById('profileBlock');
+  const xp = parseInt(localStorage.getItem('ssg_xp')||'0');
+  const joined = localStorage.getItem('ssg_faculty_joined')||Date.now();
+  const daysSince = Math.floor((Date.now()-+joined)/86400000);
+  const badges = JSON.parse(localStorage.getItem('ssg_badges')||'[]');
+  const lectDone = JSON.parse(localStorage.getItem(`ssg_lectures_${f.id}`)||'[]').length;
+  const questDone = JSON.parse(localStorage.getItem(`ssg_quest_${f.id}`)||'{}');
+  const questStep = questDone.step||0;
+  const podDone = JSON.parse(localStorage.getItem(`ssg_podcast_${f.id}`)||'[]').length;
+  const rpDone = JSON.parse(localStorage.getItem(`ssg_roleplay_${f.id}`)||'[]').length;
+  const oathDone = !!localStorage.getItem(`ssg_oath_${f.id}`);
+
+  // XP → ранг
+  let rank, rankNext;
+  if(xp < 100){ rank='🌱 Новичок'; rankNext=100; }
+  else if(xp < 250){ rank='📚 Ученик'; rankNext=250; }
+  else if(xp < 500){ rank='⭐ Знаток'; rankNext=500; }
+  else if(xp < 1000){ rank='🔥 Мастер'; rankNext=1000; }
+  else { rank='🏆 Легенда факультета'; rankNext=xp; }
+  const rankPct = rankNext>xp ? Math.round((xp/(rankNext))*100) : 100;
+
+  el.innerHTML = `
+    <div style="background:linear-gradient(135deg,${f.color}22,${f.colorLight||'#fdf6ec'}88);border:2px solid ${f.color}44;border-radius:18px;padding:20px">
+      <!-- Шапка -->
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+        <div style="width:56px;height:56px;border-radius:50%;background:${f.color};display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0">${f.icon}</div>
+        <div>
+          <div style="font-weight:900;font-size:1rem">${f.name}</div>
+          <div style="font-size:.82rem;color:var(--text3);margin-top:2px">${rank}</div>
+        </div>
+      </div>
+      <!-- XP бар -->
+      <div style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;font-size:.78rem;font-weight:700;margin-bottom:5px">
+          <span>XP: ${xp}</span><span style="color:var(--text3)">${rankPct}%</span>
+        </div>
+        <div style="height:8px;background:#e0e0e0;border-radius:4px;overflow:hidden">
+          <div style="height:100%;width:${rankPct}%;background:${f.color};border-radius:4px;transition:.4s"></div>
+        </div>
+      </div>
+      <!-- Статистика -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+        ${stat('📅','В факультете',daysSince+' дн.')}
+        ${stat('📖','Лекций',lectDone+' / '+(f.lectures?.length||4))}
+        ${stat('🎙️','Подкастов',podDone+' / '+(f.podcast?.length||4))}
+        ${stat('🎭','Ролевых игр',rpDone+' / '+(f.roleplay?.length||1))}
+        ${stat('⚔️','Квест',questStep+'/5')}
+        ${stat('🤝','Клятва',oathDone?'✅':'—')}
+      </div>
+      <!-- Значки -->
+      ${badges.length?`<div style="font-size:.78rem;font-weight:700;color:var(--text3);margin-bottom:8px">ЗНАЧКИ (${badges.length})</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${badges.map(b=>`<span title="${b}" style="font-size:1.3rem">${b}</span>`).join('')}</div>`:'<div style="color:var(--text3);font-size:.83rem">Значков пока нет — зарабатывай!</div>'}
+    </div>`;
+}
+function stat(emoji, label, value){
+  return `<div style="background:white;border-radius:12px;padding:10px 12px">
+    <div style="font-size:.72rem;color:var(--text3);margin-bottom:2px">${emoji} ${label}</div>
+    <div style="font-weight:900;font-size:.92rem">${value}</div>
+  </div>`;
+}
+
+// Хук группы В
+window._groupCInit = function(f){
+  checkOath(f);
+  renderGraduate(f);
+  renderProfile(f);
 };
 </script>
 

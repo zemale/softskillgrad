@@ -6,33 +6,50 @@
 <title>Комната факультета — SoftSkillGrad</title>
 <link rel="stylesheet" href="style.css">
 <style>
-  .dean-bubble{display:flex;gap:14px;align-items:flex-start;background:var(--card);border-radius:16px;padding:16px;margin-bottom:16px;border:1.5px solid var(--border)}
-  .dean-avatar{font-size:2.5rem;flex-shrink:0}
+  /* ===== БАЗОВЫЕ КОМПОНЕНТЫ ===== */
+  .dean-bubble{display:flex;gap:14px;align-items:flex-start;background:var(--card);border-radius:16px;padding:16px;margin-bottom:16px;border:1.5px solid var(--border);position:relative;transition:.3s}
+  .dean-avatar{font-size:2.5rem;flex-shrink:0;cursor:pointer;transition:.3s}
   .dean-info .dean-name{font-weight:900;font-size:1rem}
   .dean-info .dean-title{font-size:.8rem;color:var(--text3);margin-bottom:6px}
   .dean-info .dean-bio{font-size:.82rem;color:var(--text2);margin-bottom:6px;line-height:1.5}
   .dean-quote{font-style:italic;font-size:.9rem;color:var(--text3);margin-top:4px;border-left:3px solid var(--sage);padding-left:10px}
 
-  .faculty-header{border-radius:18px;padding:20px;margin-bottom:16px;display:flex;align-items:center;gap:16px}
-  .fh-icon{font-size:3rem}
-  .fh-name{font-size:1.2rem;font-weight:900;color:#fff}
-  .fh-slogan{font-size:.85rem;color:rgba(255,255,255,.8)}
+  .faculty-header{border-radius:18px;padding:20px;margin-bottom:16px;display:flex;align-items:center;gap:16px;position:relative;overflow:hidden;transition:.5s}
+  .fh-icon{font-size:3rem;z-index:1}
+  .fh-name{font-size:1.2rem;font-weight:900;color:#fff;z-index:1}
+  .fh-slogan{font-size:.85rem;color:rgba(255,255,255,.8);z-index:1}
+
+  /* Уровни комнаты */
+  .room-lvl2 .faculty-header{background: linear-gradient(135deg, var(--fac-color, #7ab893) 0%, #f4956a 100%) !important}
+  .room-lvl2 .dean-bubble{border-color: var(--fac-color, #7ab893); box-shadow: 0 0 0 2px rgba(122,184,147,.2)}
+  .room-lvl3 .faculty-header{background: linear-gradient(135deg, var(--fac-color, #7ab893) 0%, #f4956a 50%, #7ec8e3 100%) !important; animation: shimmer 3s infinite}
+  .room-lvl3 .dean-avatar{animation: pulse-dean 2s infinite}
+  .room-lvl3 .dean-bubble{border: 2px solid gold; box-shadow: 0 0 12px rgba(255,215,0,.3)}
+  @keyframes shimmer{0%,100%{filter:brightness(1)}50%{filter:brightness(1.1)}}
+  @keyframes pulse-dean{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+
+  /* Crest badge на хедере */
+  .crest-badge{position:absolute;right:16px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;z-index:2}
+  .crest-badge .crest-sym{font-size:1.8rem;border-radius:50%;width:46px;height:46px;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,.6)}
+  .crest-badge .crest-motto{font-size:.6rem;color:rgba(255,255,255,.9);text-align:center;max-width:80px;margin-top:2px;line-height:1.2;font-style:italic}
 
   .section-title{font-size:1rem;font-weight:900;margin:20px 0 10px;color:var(--text1)}
+  .fr-section{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:16px;margin-bottom:14px}
+  .fr-title{font-size:1rem;font-weight:900;margin:0 0 12px;color:var(--text1)}
 
-  .faculty-task-card{display:flex;align-items:flex-start;gap:12px;background:var(--card);border-radius:14px;padding:14px;margin-bottom:8px;border:1.5px solid var(--border);cursor:pointer;transition:.15s}
+  .faculty-task-card{display:flex;align-items:flex-start;gap:12px;background:var(--hover);border-radius:14px;padding:14px;margin-bottom:8px;border:1.5px solid var(--border);cursor:pointer;transition:.15s}
   .faculty-task-card.done{opacity:.55;text-decoration:line-through}
   .task-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.8rem;margin-top:1px}
   .task-check.checked{background:var(--sage);border-color:var(--sage);color:white}
 
-  .case-card{background:var(--card);border:1.5px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px}
+  .case-card{background:var(--hover);border:1.5px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px}
   .case-card .case-title{font-weight:900;font-size:.95rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;gap:8px}
   .case-body{display:none;margin-top:12px}
   .case-body.open{display:block}
-  .case-story{font-size:.85rem;color:var(--text2);line-height:1.6;margin-bottom:14px;padding:12px;background:var(--hover);border-radius:10px}
+  .case-story{font-size:.85rem;color:var(--text2);line-height:1.6;margin-bottom:14px;padding:12px;background:var(--card);border-radius:10px}
   .case-qblock{margin-bottom:12px}
   .case-q{font-size:.9rem;font-weight:700;margin-bottom:8px}
-  .case-opt{background:var(--hover);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;cursor:pointer;font-size:.85rem;display:block;width:100%;text-align:left;margin-bottom:6px;transition:.15s}
+  .case-opt{background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;cursor:pointer;font-size:.85rem;display:block;width:100%;text-align:left;margin-bottom:6px;transition:.15s}
   .case-opt:hover{border-color:var(--sage)}
   .case-opt.correct{border-color:#00b894;background:#e6f9f4;color:#007a5e}
   .case-opt.wrong{border-color:#e17055;background:#ffeae6;color:#c0392b}
@@ -44,53 +61,187 @@
   .skill-chip:hover{border-color:var(--sage);background:var(--hover)}
 
   .btn-switch{background:var(--border);color:var(--text1);border:none;border-radius:12px;padding:12px 20px;cursor:pointer;font-size:.9rem;font-weight:700;width:100%;margin-top:20px}
+
+  /* ===== ЧАТ ===== */
+  .chat-window{height:250px;overflow-y:auto;background:var(--bg);border-radius:14px;padding:12px;margin-bottom:10px;display:flex;flex-direction:column;gap:8px}
+  .chat-msg-dean{display:flex;gap:8px;align-items:flex-end}
+  .chat-msg-dean .bubble{background:var(--card);border-radius:14px 14px 14px 4px;padding:10px 14px;font-size:.88rem;max-width:80%;border:1.5px solid var(--border)}
+  .chat-msg-user{display:flex;justify-content:flex-end}
+  .chat-msg-user .bubble{background:var(--sage);color:white;border-radius:14px 14px 4px 14px;padding:10px 14px;font-size:.88rem;max-width:80%}
+  .chat-input-row{display:flex;gap:8px}
+  .chat-input-row input{flex:1;border:1.5px solid var(--border);border-radius:12px;padding:10px 14px;font-size:.9rem;background:var(--card)}
+  .chat-input-row button{background:var(--sage);color:white;border:none;border-radius:12px;padding:10px 18px;font-size:1.1rem;cursor:pointer}
+
+  /* ===== ПИСЬМО ===== */
+  .letter-textarea{width:100%;min-height:100px;border:1.5px solid var(--border);border-radius:12px;padding:12px;font-size:.9rem;resize:vertical;background:var(--card);box-sizing:border-box}
+  .letter-btn{background:var(--sage);color:white;border:none;border-radius:12px;padding:10px 24px;cursor:pointer;font-size:.9rem;margin-top:8px}
+  .letter-reply{background:var(--hover);border-radius:12px;padding:14px;font-size:.88rem;line-height:1.6;color:var(--text2);border-left:4px solid var(--sage)}
+  .letter-archive{font-size:.8rem;color:var(--text3);margin-bottom:10px}
+  @keyframes flyAway{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-80px) scale(.5);opacity:0}}
+  .fly-away{animation:flyAway .6s ease-in forwards}
+
+  /* ===== БИБЛИОТЕКА ===== */
+  .lib-card{display:flex;gap:12px;align-items:flex-start;background:var(--hover);border-radius:12px;padding:12px;margin-bottom:8px}
+  .lib-icon{font-size:1.6rem;flex-shrink:0}
+  .lib-title{font-weight:700;font-size:.9rem}
+  .lib-meta{font-size:.78rem;color:var(--text3);margin:2px 0}
+  .lib-why{font-size:.82rem;color:var(--text2);font-style:italic;margin-top:4px}
+
+  /* ===== ЛЕКЦИИ ===== */
+  .lecture-card{display:flex;gap:12px;align-items:flex-start;background:var(--hover);border-radius:12px;padding:12px;margin-bottom:8px;cursor:pointer;transition:.15s;border:1.5px solid var(--border)}
+  .lecture-card:hover:not(.locked){border-color:var(--sage)}
+  .lecture-card.locked{opacity:.5;cursor:default}
+  .lecture-card.done-lec{border-color:var(--sage)}
+  .lec-num{width:36px;height:36px;border-radius:50%;background:var(--sage);color:white;display:flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0}
+  .lecture-card.locked .lec-num{background:var(--border)}
+  .lec-title{font-weight:700;font-size:.9rem}
+  .lec-meta{font-size:.78rem;color:var(--text3);margin-top:2px}
+
+  /* Модалки */
+  .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
+  .modal-box{background:var(--card);border-radius:20px;padding:24px;max-width:500px;width:100%;max-height:80vh;overflow-y:auto;position:relative}
+  .modal-close{position:absolute;top:12px;right:16px;font-size:1.4rem;cursor:pointer;color:var(--text3);background:none;border:none}
+  .modal-title{font-size:1.1rem;font-weight:900;margin-bottom:12px}
+  .modal-content{font-size:.88rem;color:var(--text2);line-height:1.7;white-space:pre-line}
+  .key-point{background:var(--hover);border-radius:8px;padding:8px 12px;margin:4px 0;font-size:.85rem}
+  .key-point::before{content:'✦ '}
+
+  /* ===== КВЕСТ ===== */
+  .quest-chain{display:flex;flex-direction:column;gap:0}
+  .quest-step{display:flex;gap:12px;position:relative}
+  .quest-step::before{content:'';position:absolute;left:16px;top:36px;bottom:-8px;width:2px;background:var(--border)}
+  .quest-step:last-child::before{display:none}
+  .qs-dot{width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.85rem;margin-top:6px;z-index:1}
+  .qs-dot.done-dot{background:var(--sage);color:white}
+  .qs-dot.active-dot{background:var(--peach);color:white;animation:pulse-dot 1.5s infinite}
+  .qs-dot.future-dot{background:var(--border);color:var(--text3)}
+  @keyframes pulse-dot{0%,100%{box-shadow:0 0 0 0 rgba(244,149,106,.4)}70%{box-shadow:0 0 0 8px rgba(244,149,106,0)}}
+  .qs-content{flex:1;background:var(--hover);border-radius:12px;padding:12px;margin-bottom:8px}
+  .qs-title{font-weight:700;font-size:.9rem}
+  .qs-task{font-size:.82rem;color:var(--text2);margin:4px 0}
+  .qs-xp{font-size:.75rem;color:var(--peach);font-weight:700}
+  .qs-btn{background:var(--sage);color:white;border:none;border-radius:10px;padding:8px 16px;cursor:pointer;font-size:.85rem;margin-top:8px}
+  .qs-proof{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:8px;font-size:.85rem;margin-top:6px;background:var(--card);box-sizing:border-box}
+  .quest-reward{text-align:center;padding:14px;background:linear-gradient(135deg,var(--sage),var(--peach));border-radius:14px;color:white;font-size:.9rem;margin-top:10px;font-weight:700}
+
+  /* ===== ТРЕНАЖЁР ===== */
+  .trainer-card{background:var(--hover);border-radius:14px;padding:16px;font-size:.9rem;line-height:1.6;min-height:80px}
+  .trainer-btns{display:flex;gap:10px;margin-top:12px}
+  .btn-done{background:var(--sage);color:white;border:none;border-radius:12px;padding:10px 20px;font-size:.9rem;cursor:pointer}
+  .btn-skip{background:var(--border);color:var(--text1);border:none;border-radius:12px;padding:10px 20px;font-size:.9rem;cursor:pointer}
+
+  /* ===== ГЕРБ ===== */
+  .crest-builder{display:flex;flex-direction:column;gap:12px}
+  .crest-step-title{font-weight:700;font-size:.88rem;color:var(--text3);margin-bottom:4px}
+  .emoji-grid{display:flex;flex-wrap:wrap;gap:8px}
+  .emoji-opt{font-size:1.6rem;cursor:pointer;padding:6px;border-radius:8px;border:2px solid transparent;transition:.15s}
+  .emoji-opt.selected,.emoji-opt:hover{border-color:var(--sage);background:var(--hover)}
+  .color-grid{display:flex;gap:8px}
+  .color-opt{width:36px;height:36px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:.15s}
+  .color-opt.selected,.color-opt:hover{border-color:var(--text1)}
+  .crest-motto-input{width:100%;border:1.5px solid var(--border);border-radius:12px;padding:10px 14px;font-size:.9rem;background:var(--card);box-sizing:border-box}
+  .crest-result{text-align:center;padding:20px;border-radius:16px;border:3px solid var(--sage)}
+  .crest-result .cr-sym{font-size:3rem;display:block}
+  .crest-result .cr-motto{font-size:.85rem;font-style:italic;color:var(--text2);margin-top:6px}
+  .btn-create-crest{background:var(--peach);color:white;border:none;border-radius:12px;padding:10px 24px;cursor:pointer;font-size:.9rem;margin-top:8px;width:100%}
+  .btn-reset-crest{background:var(--border);color:var(--text1);border:none;border-radius:10px;padding:6px 16px;cursor:pointer;font-size:.82rem;margin-top:8px}
+
+  /* ===== ЛЕГЕНДЫ ===== */
+  .legend-card{display:flex;gap:12px;background:var(--hover);border-radius:12px;padding:12px;margin-bottom:10px}
+  .legend-ava{font-size:2rem;flex-shrink:0}
+  .legend-name{font-weight:900;font-size:.9rem}
+  .legend-role{font-size:.78rem;color:var(--text3);margin-bottom:4px}
+  .legend-story{font-size:.82rem;color:var(--text2);line-height:1.5;margin-bottom:6px}
+  .legend-quote{font-style:italic;font-size:.82rem;color:var(--text3);border-left:3px solid var(--peach);padding-left:8px}
+
+  /* ===== МИССИЯ ===== */
+  .mission-bar-wrap{background:var(--bg);border-radius:10px;height:14px;overflow:hidden;margin:10px 0}
+  .mission-bar{height:100%;background:linear-gradient(90deg,var(--sage),var(--peach));border-radius:10px;transition:.5s}
+  .mission-count{font-size:.85rem;color:var(--text3);text-align:right}
+  .mission-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .mission-action-chip{font-size:.78rem;background:var(--hover);border-radius:8px;padding:4px 10px;color:var(--text2)}
+
+  /* ===== СОВЕТЫ ===== */
+  .advice-card{background:var(--hover);border-radius:12px;padding:12px;margin-bottom:8px;font-size:.88rem;line-height:1.5;color:var(--text2);border-left:3px solid var(--sky)}
+  .advice-author{font-size:.75rem;color:var(--text3);margin-top:4px}
+  .advice-form textarea{width:100%;min-height:80px;border:1.5px solid var(--border);border-radius:12px;padding:10px;font-size:.88rem;background:var(--card);resize:none;box-sizing:border-box}
+  .advice-form button{background:var(--sage);color:white;border:none;border-radius:10px;padding:8px 20px;cursor:pointer;font-size:.88rem;margin-top:8px}
+
+  /* ===== XP нотификация ===== */
+  .xp-toast{position:fixed;bottom:24px;right:16px;background:var(--sage);color:white;border-radius:12px;padding:10px 18px;font-weight:700;z-index:200;animation:fadeSlide .4s;pointer-events:none}
+  @keyframes fadeSlide{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
-<div class="container">
+<div class="container" id="roomContainer">
   <div class="page-header">
     <a href="index.html" class="back-btn">← На главную</a>
   </div>
-
   <div id="app">Загружаем...</div>
 </div>
 
 <script>
 const params = new URLSearchParams(location.search);
 const facultyId = params.get('id') || localStorage.getItem('ssg_faculty');
+let FACULTY = null;
 
 fetch('data/faculties.json').then(r=>r.json()).then(faculties=>{
   const f = faculties.find(x=>x.id===facultyId);
   if(!f){ document.getElementById('app').innerHTML='<p>Факультет не найден. <a href="faculty.html">Выбрать факультет</a></p>'; return; }
+  FACULTY = f;
+  document.documentElement.style.setProperty('--fac-color', f.color);
+  applyRoomLevel(f);
   render(f);
 });
 
+/* ===== УРОВЕНЬ КОМНАТЫ ===== */
+function calcProgress(f){
+  const today = new Date().toISOString().slice(0,10);
+  const doneTasks = JSON.parse(localStorage.getItem(`ssg_faculty_daily_${today}_${f.id}`)||'[]').length;
+  const doneCases = JSON.parse(localStorage.getItem(`ssg_faculty_cases_${f.id}`)||'[]').length;
+  const questStep = (JSON.parse(localStorage.getItem(`ssg_quest_${f.id}`)||'null') || {step:0}).step;
+  const doneLec = JSON.parse(localStorage.getItem(`ssg_lectures_${f.id}`)||'[]').length;
+  const total = 3 + (f.cases||[]).length + ((f.quest||{steps:[]}).steps||[]).length + 4;
+  const done = doneTasks + doneCases + questStep + doneLec;
+  return total>0 ? Math.round(done/total*100) : 0;
+}
+function applyRoomLevel(f){
+  const pct = calcProgress(f);
+  const rc = document.getElementById('roomContainer');
+  rc.classList.remove('room-lvl2','room-lvl3');
+  if(pct>70) rc.classList.add('room-lvl3');
+  else if(pct>30) rc.classList.add('room-lvl2');
+}
+
+/* ===== РЕНДЕР ВСЕЙ СТРАНИЦЫ ===== */
 function render(f){
   const today = new Date().toISOString().slice(0,10);
   const dailyKey = `ssg_faculty_daily_${today}_${f.id}`;
   const casesKey = `ssg_faculty_cases_${f.id}`;
-
-  // Pick 3 daily tasks seeded by date
   const seed = today.replace(/-/g,'');
   const seedNum = parseInt(seed) % f.daily_tasks.length;
   const tasks = [];
   for(let i=0;i<3;i++) tasks.push(f.daily_tasks[(seedNum+i)%f.daily_tasks.length]);
-
   let doneTasks = JSON.parse(localStorage.getItem(dailyKey)||'[]');
   let doneCases = JSON.parse(localStorage.getItem(casesKey)||'[]');
 
+  // Crest
+  const crest = JSON.parse(localStorage.getItem(`ssg_crest_${f.id}`)||'null');
+  const crestBadgeHtml = crest ? `<div class="crest-badge"><div class="crest-sym" style="background:${crest.color}">${crest.sym}</div><div class="crest-motto">${crest.motto}</div></div>` : '';
+
   const app = document.getElementById('app');
   app.innerHTML = `
-    <div class="faculty-header" style="background:${f.color}">
+    <div class="faculty-header" style="background:${f.color}" id="facHeader">
       <div class="fh-icon">${f.icon}</div>
-      <div>
+      <div style="z-index:1">
         <div class="fh-name">${f.name}</div>
         <div class="fh-slogan">${f.slogan}</div>
       </div>
+      ${crestBadgeHtml}
     </div>
 
     <div class="dean-bubble">
-      <div class="dean-avatar">${f.dean.avatar}</div>
+      <div class="dean-avatar" title="Нажми чтобы пообщаться">${f.dean.avatar}</div>
       <div class="dean-info">
         <div class="dean-name">${f.dean.name}</div>
         <div class="dean-title">${f.dean.title}</div>
@@ -99,6 +250,7 @@ function render(f){
       </div>
     </div>
 
+    <!-- ЗАДАНИЯ -->
     <div class="section-title">📋 Задания на сегодня</div>
     <div id="tasksWrap">
       ${tasks.map((t,i)=>{
@@ -110,6 +262,7 @@ function render(f){
       }).join('')}
     </div>
 
+    <!-- КЕЙСЫ -->
     <div class="section-title">🎯 Кейсы факультета</div>
     <div id="casesWrap">
       ${f.cases.map((c,ci)=>{
@@ -135,15 +288,532 @@ function render(f){
       }).join('')}
     </div>
 
+    <!-- НАВЫКИ -->
     <div class="section-title">🧠 Рекомендованные навыки</div>
     <div class="skill-chips">
       ${f.skills.map(s=>`<a href="skill.html?id=${s}" class="skill-chip">${s.replace(/_/g,' ')}</a>`).join('')}
     </div>
 
+    <!-- ЧАТ С ДЕКАНОМ -->
+    ${renderChat(f)}
+
+    <!-- ПИСЬМО ДЕКАНУ -->
+    ${renderLetter(f)}
+
+    <!-- ТРЕНАЖЁР -->
+    ${renderTrainer(f)}
+
+    <!-- БИБЛИОТЕКА -->
+    ${renderLibrary(f)}
+
+    <!-- ЛЕКЦИИ -->
+    ${renderLectures(f)}
+
+    <!-- КВЕСТ -->
+    ${renderQuest(f)}
+
+    <!-- ГЕРБ -->
+    ${renderCrest(f)}
+
+    <!-- ЛЕГЕНДЫ -->
+    ${renderLegends(f)}
+
+    <!-- МИССИЯ -->
+    ${renderMission(f)}
+
+    <!-- СОВЕТЫ СТУДЕНТАМ -->
+    ${renderAdvice(f)}
+
     <button class="btn-switch" onclick="switchFaculty()">🔄 Сменить факультет</button>
   `;
+
+  initChat(f);
 }
 
+/* ===== ЧАТ ===== */
+function renderChat(f){
+  return `<div class="fr-section" id="chatSection">
+    <h2 class="fr-title">💬 Чат с деканом</h2>
+    <div class="chat-window" id="chatWindow"></div>
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="Напиши декану..." maxlength="200" onkeydown="if(event.key==='Enter')sendChat()">
+      <button onclick="sendChat()">→</button>
+    </div>
+  </div>`;
+}
+
+function initChat(f){
+  const key = `ssg_chat_${f.id}`;
+  const history = JSON.parse(localStorage.getItem(key)||'[]');
+  const win = document.getElementById('chatWindow');
+  if(!win) return;
+  // Показываем историю
+  history.forEach(m => appendBubble(win, m.who, m.text, f.dean.avatar));
+  // Приветствие если история пустая
+  if(history.length===0){
+    const greeting = (f.chat||[])[0]?.reply || `Привет! Рад видеть тебя в нашей комнате 😊`;
+    setTimeout(()=>{
+      appendBubble(win,'dean',greeting,f.dean.avatar);
+      saveChat(key,{who:'dean',text:greeting});
+    },500);
+  }
+  win.scrollTop = win.scrollHeight;
+}
+
+function appendBubble(win, who, text, avatar){
+  const div = document.createElement('div');
+  if(who==='dean'){
+    div.className='chat-msg-dean';
+    div.innerHTML=`<span style="font-size:1.3rem">${avatar}</span><div class="bubble">${text}</div>`;
+  } else {
+    div.className='chat-msg-user';
+    div.innerHTML=`<div class="bubble">${text}</div>`;
+  }
+  win.appendChild(div);
+  win.scrollTop=win.scrollHeight;
+}
+
+function saveChat(key,msg){
+  let h = JSON.parse(localStorage.getItem(key)||'[]');
+  h.push(msg);
+  if(h.length>20) h=h.slice(-20);
+  localStorage.setItem(key,JSON.stringify(h));
+}
+
+function sendChat(){
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if(!text||!FACULTY) return;
+  input.value='';
+  const key=`ssg_chat_${FACULTY.id}`;
+  const win=document.getElementById('chatWindow');
+  appendBubble(win,'user',text,FACULTY.dean.avatar);
+  saveChat(key,{who:'user',text});
+  // Найти ответ
+  const lc=text.toLowerCase();
+  const chat=FACULTY.chat||[];
+  let reply='';
+  for(const c of chat){
+    if(c.trigger==='default') continue;
+    if(c.keywords.some(k=>lc.includes(k))){ reply=c.reply; break; }
+  }
+  if(!reply){
+    const def=chat.find(c=>c.trigger==='default');
+    reply=def?def.reply:'Интересно! Расскажи подробнее 😊';
+  }
+  setTimeout(()=>{
+    appendBubble(win,'dean',reply,FACULTY.dean.avatar);
+    saveChat(key,{who:'dean',text:reply});
+  },600);
+}
+
+/* ===== ПИСЬМО ===== */
+function renderLetter(f){
+  const today=new Date().toISOString().slice(0,10);
+  const key=`ssg_letter_${f.id}_${today}`;
+  const saved=JSON.parse(localStorage.getItem(key)||'null');
+  // Архив вчера
+  const yesterday=new Date(Date.now()-86400000).toISOString().slice(0,10);
+  const archKey=`ssg_letter_${f.id}_${yesterday}`;
+  const arch=JSON.parse(localStorage.getItem(archKey)||'null');
+  const archHtml=arch?`<div class="letter-archive">📅 Вчера ты писал декану: «${arch.letter.slice(0,80)}...»<div class="letter-reply" style="margin-top:6px">${arch.reply}</div></div>`:'';
+  if(saved){
+    return `<div class="fr-section" id="letterSection">
+      <h2 class="fr-title">✉️ Письмо декану</h2>
+      ${archHtml}
+      <div id="letterContent">
+        <div style="font-size:.85rem;color:var(--text3);margin-bottom:8px">Твоё письмо сегодня:</div>
+        <div class="letter-archive">«${saved.letter}»</div>
+        <div class="fr-title" style="font-size:.88rem;margin-top:10px">Ответ декана:</div>
+        <div class="letter-reply">${saved.reply}</div>
+      </div>
+    </div>`;
+  }
+  return `<div class="fr-section" id="letterSection">
+    <h2 class="fr-title">✉️ Письмо декану</h2>
+    ${archHtml}
+    <div id="letterContent">
+      <textarea class="letter-textarea" id="letterText" placeholder="Напиши что-нибудь декану... Как дела, что на душе, что получилось или не получилось"></textarea>
+      <button class="letter-btn" onclick="sendLetter()">📨 Отправить</button>
+    </div>
+  </div>`;
+}
+
+function sendLetter(){
+  const text=document.getElementById('letterText')?.value?.trim();
+  if(!text||!FACULTY) return;
+  const content=document.getElementById('letterContent');
+  content.classList.add('fly-away');
+  setTimeout(()=>{
+    content.classList.remove('fly-away');
+    const replies=FACULTY.letter_replies||['Спасибо за письмо!'];
+    const reply=replies[Math.floor(Math.random()*replies.length)];
+    const today=new Date().toISOString().slice(0,10);
+    const key=`ssg_letter_${FACULTY.id}_${today}`;
+    localStorage.setItem(key,JSON.stringify({letter:text,reply}));
+    addMissionProgress();
+    content.innerHTML=`<div style="font-size:.85rem;color:var(--text3);margin-bottom:8px">Твоё письмо отправлено ✉️</div>
+      <div class="letter-archive">«${text}»</div>
+      <div class="fr-title" style="font-size:.88rem;margin-top:10px">Ответ декана:</div>
+      <div class="letter-reply">${reply}</div>`;
+  },700);
+}
+
+/* ===== БИБЛИОТЕКА ===== */
+function renderLibrary(f){
+  const lib=f.library||[];
+  return `<div class="fr-section">
+    <h2 class="fr-title">📖 Библиотека факультета</h2>
+    ${lib.map(item=>`<div class="lib-card">
+      <div class="lib-icon">${item.icon}</div>
+      <div>
+        <div class="lib-title">${item.title}</div>
+        <div class="lib-meta">${item.author||item.where||''}${item.year?' · '+item.year:''}</div>
+        <div class="lib-why">${item.why}</div>
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+/* ===== ЛЕКЦИИ ===== */
+function renderLectures(f){
+  const lectures=f.lectures||[];
+  const doneKey=`ssg_lectures_${f.id}`;
+  const done=JSON.parse(localStorage.getItem(doneKey)||'[]');
+  // Открываем лекции по одной в неделю от старта
+  const joinDate=localStorage.getItem(`ssg_join_${f.id}`)||new Date().toISOString().slice(0,10);
+  if(!localStorage.getItem(`ssg_join_${f.id}`)) localStorage.setItem(`ssg_join_${f.id}`,joinDate);
+  const weeksElapsed=Math.floor((Date.now()-new Date(joinDate).getTime())/(7*86400000));
+  return `<div class="fr-section">
+    <h2 class="fr-title">🎓 Лекции декана</h2>
+    ${lectures.map((lec,i)=>{
+      const isLocked=i>weeksElapsed;
+      const isDone=done.includes(lec.id);
+      return `<div class="lecture-card${isLocked?' locked':''}${isDone?' done-lec':''}" onclick="${isLocked?'':'openLecture('+lec.id+')'}">
+        <div class="lec-num">${isLocked?'🔒':isDone?'✓':lec.id}</div>
+        <div>
+          <div class="lec-title">${lec.title}</div>
+          <div class="lec-meta">⏱ ${lec.duration}${isLocked?' · Откроется через '+(i-weeksElapsed)+' нед.':isDone?' · Прочитано':''}${!isLocked&&!isDone?' · Нажми чтобы читать':''}</div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function openLecture(id){
+  const lec=FACULTY.lectures.find(l=>l.id===id);
+  if(!lec) return;
+  const overlay=document.createElement('div');
+  overlay.className='modal-overlay';
+  overlay.innerHTML=`<div class="modal-box">
+    <button class="modal-close" onclick="closeLecture(${id})">✕</button>
+    <div class="modal-title">🎓 ${lec.title}</div>
+    <div style="font-size:.8rem;color:var(--text3);margin-bottom:12px">⏱ ${lec.duration}</div>
+    <div class="modal-content">${lec.content}</div>
+    <div style="margin-top:14px">
+      <div style="font-weight:700;font-size:.88rem;margin-bottom:6px">Ключевые мысли:</div>
+      ${lec.key_points.map(kp=>`<div class="key-point">${kp}</div>`).join('')}
+    </div>
+    <button style="background:var(--sage);color:white;border:none;border-radius:12px;padding:10px 24px;cursor:pointer;font-size:.9rem;margin-top:14px;width:100%" onclick="markLecture(${id})">✅ Прочитал!</button>
+  </div>`;
+  overlay.id='lectureOverlay_'+id;
+  document.body.appendChild(overlay);
+}
+
+function closeLecture(id){
+  const o=document.getElementById('lectureOverlay_'+id);
+  if(o) o.remove();
+}
+
+function markLecture(id){
+  const key=`ssg_lectures_${FACULTY.id}`;
+  let done=JSON.parse(localStorage.getItem(key)||'[]');
+  if(!done.includes(id)){done.push(id);localStorage.setItem(key,JSON.stringify(done));}
+  addXP(15);
+  addMissionProgress();
+  closeLecture(id);
+  // Re-render lectures section
+  document.querySelector('.fr-section:has(.fr-title)')?.closest?.('.fr-section');
+  render(FACULTY);
+}
+
+/* ===== КВЕСТ ===== */
+function renderQuest(f){
+  if(!f.quest) return '';
+  const key=`ssg_quest_${f.id}`;
+  const qstate=JSON.parse(localStorage.getItem(key)||'{"step":0,"proofs":{}}');
+  const steps=f.quest.steps||[];
+  const completed=qstate.step>=steps.length;
+  return `<div class="fr-section">
+    <h2 class="fr-title">⚔️ ${f.quest.title}</h2>
+    <div style="font-size:.85rem;color:var(--text2);margin-bottom:12px">${f.quest.description}</div>
+    <div class="quest-chain">
+      ${steps.map((s,i)=>{
+        const isDone=i<qstate.step;
+        const isActive=i===qstate.step&&!completed;
+        const isFuture=i>qstate.step;
+        const dotClass=isDone?'done-dot':isActive?'active-dot':'future-dot';
+        const dotIcon=isDone?'✓':isActive?'▶':s.id;
+        return `<div class="quest-step">
+          <div class="qs-dot ${dotClass}">${dotIcon}</div>
+          <div class="qs-content">
+            <div class="qs-title">${s.title}</div>
+            <div class="qs-task">${s.task}</div>
+            <div class="qs-xp">+${s.xp} XP</div>
+            ${isActive?`<textarea class="qs-proof" id="qproof_${i}" placeholder="${s.proof}"></textarea>
+              <button class="qs-btn" onclick="completeQuestStep(${i})">✅ Выполнено</button>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    ${completed?`<div class="quest-reward">🏅 Квест пройден! ${f.quest.reward}</div>`:''}
+  </div>`;
+}
+
+function completeQuestStep(i){
+  const key=`ssg_quest_${FACULTY.id}`;
+  const qstate=JSON.parse(localStorage.getItem(key)||'{"step":0,"proofs":{}}');
+  const proof=document.getElementById(`qproof_${i}`)?.value?.trim()||'';
+  qstate.proofs[i]=proof;
+  qstate.step=i+1;
+  localStorage.setItem(key,JSON.stringify(qstate));
+  const xp=FACULTY.quest.steps[i]?.xp||20;
+  addXP(xp);
+  addMissionProgress();
+  render(FACULTY);
+}
+
+/* ===== ТРЕНАЖЁР ===== */
+function renderTrainer(f){
+  return `<div class="fr-section">
+    <h2 class="fr-title">🏋️ Тренажёр навыка</h2>
+    <div id="trainerSkillName" style="font-size:.85rem;color:var(--text3);margin-bottom:8px"></div>
+    <div class="trainer-card" id="trainerTask">Загружаем задание...</div>
+    <div class="trainer-btns">
+      <button class="btn-done" onclick="markTrainerDone()">✅ Сделал!</button>
+      <button class="btn-skip" onclick="nextTrainerTask()">→ Другое</button>
+    </div>
+  </div>`;
+}
+
+let trainerExercises=[];
+let trainerIdx=0;
+let trainerSkill='';
+
+function loadTrainer(f){
+  fetch('data/exercises.json').then(r=>r.json()).then(ex=>{
+    const skillId=f.skills[Math.floor(Math.random()*f.skills.length)];
+    trainerSkill=skillId.replace(/_/g,' ');
+    const skill=ex[skillId];
+    if(!skill){setTrainer('Упражнения не найдены');return;}
+    const b2=skill.block2||[];
+    const all=[];
+    b2.forEach(ex=>{
+      if(ex.tasks) ex.tasks.forEach(t=>all.push(t));
+      else if(ex.task) all.push(ex.task);
+      else if(typeof ex==='string') all.push(ex);
+    });
+    if(all.length===0){setTrainer('Упражнения не найдены');return;}
+    trainerExercises=all;
+    trainerIdx=Math.floor(Math.random()*all.length);
+    showTrainerTask();
+  }).catch(()=>setTrainer('Ошибка загрузки'));
+}
+
+function showTrainerTask(){
+  const n=document.getElementById('trainerSkillName');
+  const t=document.getElementById('trainerTask');
+  if(!n||!t) return;
+  n.textContent='Навык: '+trainerSkill;
+  const task=trainerExercises[trainerIdx%trainerExercises.length];
+  t.textContent=typeof task==='string'?task:(task?.text||task?.task||JSON.stringify(task));
+}
+
+function setTrainer(msg){
+  const t=document.getElementById('trainerTask');
+  if(t) t.textContent=msg;
+}
+
+function markTrainerDone(){
+  addXP(5);
+  addMissionProgress();
+  showXPToast('+5 XP за тренировку!');
+  nextTrainerTask();
+}
+
+function nextTrainerTask(){
+  trainerIdx++;
+  if(trainerExercises.length>0) showTrainerTask();
+  else loadTrainer(FACULTY);
+}
+
+/* ===== ГЕРБ ===== */
+function renderCrest(f){
+  const key=`ssg_crest_${f.id}`;
+  const crest=JSON.parse(localStorage.getItem(key)||'null');
+  if(crest){
+    return `<div class="fr-section">
+      <h2 class="fr-title">🛡️ Твой герб</h2>
+      <div class="crest-result" style="background:${crest.color}22;border-color:${crest.color}">
+        <span class="cr-sym">${crest.sym}</span>
+        <div style="font-weight:700;font-size:.95rem;margin-top:4px">${f.name}</div>
+        <div class="cr-motto">«${crest.motto}»</div>
+      </div>
+      <button class="btn-reset-crest" onclick="resetCrest()">✏️ Изменить герб</button>
+    </div>`;
+  }
+  const symbols=['⚔️','🌟','🦅','🌿','🔥','💎','🌊','🎯','🌙','🦁'];
+  const colors=['#e17055','#7ab893','#7ec8e3','#fdcb6e','#a29bfe'];
+  return `<div class="fr-section">
+    <h2 class="fr-title">🛡️ Создай свой герб</h2>
+    <div class="crest-builder">
+      <div>
+        <div class="crest-step-title">1. Выбери символ</div>
+        <div class="emoji-grid" id="crestSymGrid">
+          ${symbols.map(s=>`<div class="emoji-opt" data-sym="${s}" onclick="selectCrestSym(this,'${s}')">${s}</div>`).join('')}
+        </div>
+      </div>
+      <div>
+        <div class="crest-step-title">2. Выбери цвет</div>
+        <div class="color-grid">
+          ${colors.map(c=>`<div class="color-opt" data-col="${c}" style="background:${c}" onclick="selectCrestColor(this,'${c}')"></div>`).join('')}
+        </div>
+      </div>
+      <div>
+        <div class="crest-step-title">3. Напиши девиз (до 50 символов)</div>
+        <input class="crest-motto-input" id="crestMottoInput" maxlength="50" placeholder="Мой девиз...">
+      </div>
+      <button class="btn-create-crest" onclick="createCrest()">✨ Создать герб</button>
+    </div>
+  </div>`;
+}
+
+let _crestSym='⭐', _crestColor='#7ab893';
+
+function selectCrestSym(el,sym){
+  document.querySelectorAll('.emoji-opt').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+  _crestSym=sym;
+}
+function selectCrestColor(el,col){
+  document.querySelectorAll('.color-opt').forEach(e=>e.classList.remove('selected'));
+  el.classList.add('selected');
+  _crestColor=col;
+}
+function createCrest(){
+  const motto=document.getElementById('crestMottoInput')?.value?.trim()||'Мой путь';
+  const crest={sym:_crestSym,color:_crestColor,motto};
+  localStorage.setItem(`ssg_crest_${FACULTY.id}`,JSON.stringify(crest));
+  addXP(10);
+  render(FACULTY);
+}
+function resetCrest(){
+  localStorage.removeItem(`ssg_crest_${FACULTY.id}`);
+  render(FACULTY);
+}
+
+/* ===== ЛЕГЕНДЫ ===== */
+function renderLegends(f){
+  const legends=f.legends||[];
+  return `<div class="fr-section">
+    <h2 class="fr-title">🌟 Легенды факультета</h2>
+    ${legends.map(l=>`<div class="legend-card">
+      <div class="legend-ava">${l.emoji}</div>
+      <div>
+        <div class="legend-name">${l.name}</div>
+        <div class="legend-role">${l.role}</div>
+        <div class="legend-story">${l.story}</div>
+        <div class="legend-quote">«${l.quote}»</div>
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+/* ===== МИССИЯ ===== */
+function renderMission(f){
+  if(!f.mission) return '';
+  const key=`ssg_mission_${f.id}`;
+  let count=parseInt(localStorage.getItem(key)||'0');
+  const pct=Math.min(100,Math.round(count/f.mission.goal*100));
+  const done=count>=f.mission.goal;
+  return `<div class="fr-section">
+    <h2 class="fr-title">🎖️ ${f.mission.title}</h2>
+    <div style="font-size:.85rem;color:var(--text2);margin-bottom:8px">${f.mission.description}</div>
+    <div class="mission-bar-wrap"><div class="mission-bar" style="width:${pct}%"></div></div>
+    <div class="mission-count">${count} / ${f.mission.goal} ${f.mission.unit} (${pct}%)</div>
+    ${done?`<div style="background:linear-gradient(135deg,var(--sage),var(--peach));border-radius:12px;padding:12px;color:white;text-align:center;margin-top:8px;font-weight:700">🏅 Миссия выполнена! Ты невероятен!</div>`:''}
+    <div style="margin-top:10px;font-size:.82rem;color:var(--text3)">Засчитываются:</div>
+    <div class="mission-actions">${(f.mission.actions||[]).map(a=>`<div class="mission-action-chip">✓ ${a}</div>`).join('')}</div>
+  </div>`;
+}
+
+function addMissionProgress(){
+  if(!FACULTY?.mission) return;
+  const key=`ssg_mission_${FACULTY.id}`;
+  let count=parseInt(localStorage.getItem(key)||'0');
+  count++;
+  localStorage.setItem(key,String(count));
+  if(count===FACULTY.mission.goal){
+    let badges=JSON.parse(localStorage.getItem('ssg_badges')||'[]');
+    if(!badges.includes(FACULTY.id+'_mission')) badges.push(FACULTY.id+'_mission');
+    localStorage.setItem('ssg_badges',JSON.stringify(badges));
+    showXPToast('🏅 Миссия выполнена!');
+  }
+}
+
+/* ===== СОВЕТЫ СТУДЕНТАМ ===== */
+function renderAdvice(f){
+  const key=`ssg_advice_${f.id}`;
+  const userAdvices=JSON.parse(localStorage.getItem(key)||'[]');
+  const prefilled=f.student_advice||[];
+  const all=[...prefilled.map((t,i)=>({text:t,author:'Студент факультета'})),...userAdvices.map((t,i)=>({text:t,author:'Ты'+(i===userAdvices.length-1?' (только что)':'')}))]
+    .slice(-10);
+  return `<div class="fr-section">
+    <h2 class="fr-title">💡 Послания студентам</h2>
+    <div style="font-size:.85rem;color:var(--text2);margin-bottom:12px">Советы от тех кто прошёл этот путь 👇</div>
+    ${all.map(a=>`<div class="advice-card">${a.text}<div class="advice-author">— ${a.author}</div></div>`).join('')}
+    <div class="advice-form" style="margin-top:12px">
+      <div style="font-size:.85rem;font-weight:700;margin-bottom:6px">Оставь совет для новичков:</div>
+      <textarea id="adviceInput" maxlength="200" placeholder="Напиши что-то полезное для тех кто только начинает..."></textarea>
+      <button onclick="publishAdvice()">📤 Опубликовать</button>
+    </div>
+  </div>`;
+}
+
+function publishAdvice(){
+  const text=document.getElementById('adviceInput')?.value?.trim();
+  if(!text||!FACULTY) return;
+  const key=`ssg_advice_${FACULTY.id}`;
+  let arr=JSON.parse(localStorage.getItem(key)||'[]');
+  arr.push(text);
+  if(arr.length>10) arr=arr.slice(-10);
+  localStorage.setItem(key,JSON.stringify(arr));
+  addXP(5);
+  showXPToast('+5 XP за мудрость!');
+  render(FACULTY);
+}
+
+/* ===== XP ===== */
+function addXP(n){
+  const key='ssg_xp';
+  let xp=parseInt(localStorage.getItem(key)||'0');
+  xp+=n;
+  localStorage.setItem(key,String(xp));
+  showXPToast('+'+n+' XP!');
+  applyRoomLevel(FACULTY);
+}
+
+function showXPToast(msg){
+  const old=document.querySelector('.xp-toast');
+  if(old) old.remove();
+  const t=document.createElement('div');
+  t.className='xp-toast';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2000);
+}
+
+/* ===== ОБЫЧНЫЕ ФУНКЦИИ ===== */
 function toggleTask(idx, key){
   let done = JSON.parse(localStorage.getItem(key)||'[]');
   const i = done.indexOf(idx);
@@ -155,6 +825,8 @@ function toggleTask(idx, key){
     card.classList.add('done');
     check.classList.add('checked');
     check.textContent='✓';
+    addXP(5);
+    addMissionProgress();
   } else {
     card.classList.remove('done');
     check.classList.remove('checked');
@@ -170,19 +842,15 @@ function toggleCase(ci){
 }
 
 const caseAnswers = {};
-
 function answerCase(ci, qi, oi, score, maxScore, totalQ, phrase, casesKey){
-  // disable all opts for this question
   const q = document.getElementById(`cq_${ci}_${qi}`);
   q.querySelectorAll('.case-opt').forEach((b,i)=>{
     b.disabled = true;
     if(i===oi) b.classList.add(score===maxScore?'correct':'wrong');
   });
-
   if(!caseAnswers[ci]) caseAnswers[ci] = {score:0, answered:0};
   caseAnswers[ci].score += score;
   caseAnswers[ci].answered++;
-
   if(caseAnswers[ci].answered === totalQ){
     const total = totalQ * maxScore;
     const pct = caseAnswers[ci].score / total;
@@ -191,11 +859,11 @@ function answerCase(ci, qi, oi, score, maxScore, totalQ, phrase, casesKey){
     else if(pct >= 0.4) msg = `👍 Неплохо! Есть над чем подумать.<br><em>«${phrase}»</em>`;
     else msg = `💡 Интересный опыт. Попробуй разобраться глубже.<br><em>«${phrase}»</em>`;
     document.getElementById(`caseResult_${ci}`).innerHTML = `<div class="case-result">${msg}</div>`;
-
-    // mark done
     let done = JSON.parse(localStorage.getItem(casesKey)||'[]');
     if(!done.includes(ci)){ done.push(ci); localStorage.setItem(casesKey, JSON.stringify(done)); }
     document.getElementById(`caseBadge_${ci}`).innerHTML = '<span class="case-done-badge">✅</span>';
+    addXP(10);
+    addMissionProgress();
   }
 }
 
@@ -203,6 +871,9 @@ function switchFaculty(){
   localStorage.removeItem('ssg_faculty');
   location.href = 'faculty.html';
 }
+
+// Загрузка тренажёра после рендера
+setTimeout(()=>{ if(FACULTY) loadTrainer(FACULTY); }, 300);
 </script>
 </body>
 </html>

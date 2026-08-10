@@ -1,0 +1,33 @@
+# зависимости и окружения
+node_modules/
+venv/
+.venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.next/
+dist/
+build/
+target/
+
+# секреты — только в шифрованный бэкап, не в git
+.env
+.env.*
+*.pem
+*.key
+*.p12
+credentials.json
+.credentials.json
+service-account*.json
+*.session
+*.session-journal
+
+# мусор
+*.log
+.DS_Store
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.turbo/
